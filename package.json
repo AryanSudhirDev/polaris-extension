@@ -1,0 +1,102 @@
+{
+  "name": "polaris-extension",
+  "displayName": "Polaris",
+  "description": "AI-powered prompt workflow inside VS Code / Cursor.",
+  "version": "0.0.1",
+  "publisher": "aryansudhir",
+  "engines": {
+    "vscode": "^1.86.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:polaris.generatePrompt",
+    "onView:polarisPromptLibrary",
+    "onCommand:polaris.quickInsertPrompt",
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "polaris.generatePrompt",
+        "title": "Polaris: Generate Prompt"
+      },
+      {
+        "command": "polaris.quickInsertPrompt",
+        "title": "Polaris: Quick Insert Prompt"
+      },
+      {
+        "command": "polaris.openPromptEditor",
+        "title": "Polaris: New Prompt"
+      },
+      {
+        "command": "polaris.account.signIn",
+        "title": "Polaris: Sign In"
+      },
+      {
+        "command": "polaris.account.signOut",
+        "title": "Polaris: Sign Out"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "polaris.generatePrompt",
+        "key": "cmd+shift+g",
+        "mac": "cmd+shift+g",
+        "when": "editorTextFocus"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "polaris",
+          "title": "Polaris",
+          "icon": "resources/polaris.svg"
+        }
+      ]
+    },
+    "views": {
+      "polaris": [
+        {
+          "id": "polarisPromptLibrary",
+          "name": "Prompt Library"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Polaris Settings",
+      "properties": {
+        "polaris.apiBase": {
+          "type": "string",
+          "default": "https://api.polaris.ai",
+          "description": "Base URL for Polaris API"
+        },
+        "polaris.insertMode": {
+          "type": "string",
+          "enum": ["replace", "below"],
+          "default": "below",
+          "description": "Where to insert AI output"
+        },
+        "polaris.hotkey": {
+          "type": "string",
+          "default": "cmd+shift+g",
+          "description": "Override default hotkey for Generate Prompt"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "@types/vscode": "^1.86",
+    "typescript": "^5.3.3",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {}
+} 
