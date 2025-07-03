@@ -432,14 +432,54 @@ export function activate(context: vscode.ExtensionContext) {
   function refreshTemperatureStatus() {
     const temp = getConfig().get<number>('temperature', 0.3);
     temperatureStatus.text = `Polaris $(flame) ${temp}`;
-    temperatureStatus.tooltip = 'Click to change temperature';
-    temperatureStatus.command = 'polaris.setTemperature';
+    temperatureStatus.tooltip = 'Polaris options';
+    temperatureStatus.command = 'polaris.showMenu';
     temperatureStatus.show();
   }
 
   refreshTemperatureStatus();
 
+  /* -------------- Command: Polaris Menu --------------- */
+  const showMenuCmd = vscode.commands.registerCommand('polaris.showMenu', async () => {
+    const pick = await vscode.window.showQuickPick(
+      [
+        { label: '$(flame) Set Temperature', action: 'temperature' },
+        { label: '$(pencil) Edit Custom Context', action: 'context' }
+      ],
+      { placeHolder: 'Polaris Options' }
+    );
+
+    if (!pick) {
+      return;
+    }
+
+    if (pick.action === 'temperature') {
+      vscode.commands.executeCommand('polaris.setTemperature');
+    } else if (pick.action === 'context') {
+      vscode.commands.executeCommand('polaris.setCustomContext');
+    }
+  });
+
+  /* ------------ Command: Set Custom Context ----------- */
+  const setCustomContextCmd = vscode.commands.registerCommand('polaris.setCustomContext', async () => {
+    const current = getConfig().get<string>('customContext', '');
+    const input = await vscode.window.showInputBox({
+      value: current,
+      prompt: 'Enter additional project context to include in AI prompts (leave blank to clear)',
+      placeHolder: 'e.g., Clean Architecture, migrating to Vue 3, security-first approach',
+      ignoreFocusOut: true
+    });
+
+    if (input === undefined) {
+      return; // user cancelled
+    }
+
+    await getConfig().update('customContext', input.trim(), vscode.ConfigurationTarget.Workspace);
+    vscode.window.showInformationMessage('Polaris: Custom context updated');
+  });
+
   context.subscriptions.push(temperatureStatus);
+  context.subscriptions.push(showMenuCmd, setCustomContextCmd);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -467,8 +507,6 @@ export function activate(context: vscode.ExtensionContext) {
     await getConfig().update('temperature', parseFloat(pick.label), vscode.ConfigurationTarget.Global);
     refreshTemperatureStatus();
   });
-
-  context.subscriptions.push(setTemperatureCmd);
 
   context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, testCodebaseCmd, showDebugCmd, log);
   console.log('Polaris extension activation complete');
@@ -542,6 +580,12 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
   // Append codebase context if available
   if (codebaseContext.projectType !== 'unknown' || codebaseContext.languages.length > 0 || codebaseContext.frameworks.length > 0 || codebaseContext.dependencies.length > 0) {
     contextualPrompt += `\n\n### CODEBASE CONTEXT ###\n**Project Type:** ${codebaseContext.projectType}\n**Languages:** ${codebaseContext.languages.join(', ') || 'Not detected'}\n**Frameworks:** ${codebaseContext.frameworks.join(', ') || 'None detected'}\n**Key Dependencies:** ${codebaseContext.dependencies.slice(0, 8).join(', ')}\n**Structure:** ${codebaseContext.fileStructure.join(', ') || 'Standard layout'}\n\n**INTEGRATION DIRECTIVE:** Leverage this technical context to ensure all recommendations align with the existing tech stack and project architecture. Prioritize solutions that integrate seamlessly with current ${codebaseContext.frameworks.length > 0 ? codebaseContext.frameworks.join('/') : 'technology stack'}.`;
+  }
+
+  const userContext = vscode.workspace.getConfiguration('polaris').get<string>('customContext', '').trim();
+
+  if (userContext) {
+    contextualPrompt += `\n\n### USER-PROVIDED CONTEXT ###\n${userContext}`;
   }
 
   contextualPrompt += `\n\n### CORE OBJECTIVE ###\nTransform brief user ideas into comprehensive, production-ready technical specifications that serve as definitive blueprints for development teams.\n\n### REASONING METHODOLOGY ###\nApply step-by-step analysis: (1) Parse user intent and constraints, (2) Identify technical requirements and dependencies, (3) Structure comprehensive specification, (4) Validate against best practices.\n\n### OUTPUT STRUCTURE ###\nGenerate your response using **only** the following sections that are relevant to the user's request. Use clear markdown formatting with proper hierarchical headers:\n\n#### **1. REFINED SUMMARY**\n- Rewrite the original concept in professional, precise language\n- Clarify scope, objectives, and success metrics\n- Maximum 2-3 sentences, focus on core value proposition\n\n#### **2. USER STORIES & USE CASES**\n- Format: "As a [specific role], I want [specific goal] so that [clear benefit/outcome]"\n- Prioritize by impact and feasibility\n- Include edge cases and error scenarios\n\n#### **3. FEATURE BREAKDOWN**\n- Enumerate concrete, measurable features\n- Organize by priority (MVP vs. future releases)\n- Include technical acceptance criteria for each feature\n\n#### **4. ARCHITECTURE & TECHNICAL RECOMMENDATIONS**\n- Specify recommended tech stack with rationale\n- Include integration patterns, data flow, and system boundaries\n- Address scalability, security, and maintainability concerns\n${codebaseContext.frameworks.length > 0 ? `- **INTEGRATION PRIORITY:** Detail how to integrate with existing ${codebaseContext.frameworks.join('/')} infrastructure` : ''}\n\n#### **5. DEVELOPMENT ROADMAP**\n- Phase-based delivery plan with clear milestones\n- Resource requirements and timeline estimates\n- Risk mitigation strategies for each phase\n\n#### **6. RISK ASSESSMENT & MITIGATION**\n- Technical risks (performance, security, compatibility)\n- Business risks (market fit, resource constraints)\n- Mitigation strategies with contingency plans\n\n#### **7. ACCESSIBILITY & USER EXPERIENCE**\n- WCAG compliance requirements\n- Cross-platform compatibility considerations\n- Performance optimization strategies\n\n### CONSTRAINTS & QUALITY STANDARDS ###\n- **Specificity:** Provide concrete, implementable details\n- **Clarity:** Use precise technical language without jargon\n- **Completeness:** Address all aspects of the request\n- **Actionability:** Every recommendation must be executable\n- **No Commentary:** Exclude meta-explanations or process descriptions\n\n### EXAMPLES FOR GUIDANCE ###\n"""\nInput: "Build a task management app"\nOutput: Comprehensive spec covering user authentication, task CRUD operations, real-time collaboration, notification systems, etc.\n\nInput: "Create a data visualization dashboard"\nOutput: Detailed spec including data sources, chart types, filtering capabilities, export functions, responsive design, etc.\n"""\n\n**EXECUTE IMMEDIATELY:** Process the user's input and generate the structured specification following the exact format above. Begin with the most relevant section based on the input complexity.`;

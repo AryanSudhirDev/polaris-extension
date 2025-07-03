@@ -2,7 +2,7 @@
   "name": "polaris-extension",
   "displayName": "Polaris",
   "description": "AI-powered prompt workflow inside VS Code / Cursor.",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"
@@ -55,6 +55,14 @@
       {
         "command": "polaris.setTemperature",
         "title": "Polaris: Set Temperature"
+      },
+      {
+        "command": "polaris.setCustomContext",
+        "title": "Polaris: Set Custom Context"
+      },
+      {
+        "command": "polaris.showMenu",
+        "title": "Polaris: Menu"
       }
     ],
     "keybindings": [
@@ -108,6 +116,11 @@
           "maximum": 1,
           "default": 0.3,
           "description": "Temperature for AI model (0 = deterministic, 1 = very random)"
+        },
+        "polaris.customContext": {
+          "type": "string",
+          "default": "",
+          "description": "Additional context to include in every AI prompt (e.g., project description, coding guidelines)"
         }
       }
     }
