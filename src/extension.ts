@@ -66,21 +66,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
       }
     
-    // If still no text, try clipboard as final fallback
-    if (!selectedText) {
-      log.appendLine('No system selection found, trying clipboard as fallback...');
-      try {
-        selectedText = await vscode.env.clipboard.readText();
-        if (selectedText) {
-          useClipboard = true;
-          log.appendLine(`Got text from clipboard: "${selectedText.substring(0, 50)}..."`);
-          vscode.window.showInformationMessage('Using clipboard text. Refined text will be copied back to clipboard.');
-        }
-      } catch (error) {
-        log.appendLine(`Failed to read clipboard: ${error}`);
-      }
-    }
-    
     // If still no text, fall back to full document
     if (!selectedText && editor) {
       selectedText = editor.document.getText();
@@ -88,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
     
     if (!selectedText) {
-      vscode.window.showErrorMessage('No text found. Please select text in VS Code or copy text to clipboard first.');
+      vscode.window.showErrorMessage('No text selected. Please select text and try again. For system-wide selection, VS Code needs accessibility permissions in System Preferences > Security & Privacy > Accessibility.');
       return;
     }
 
@@ -372,7 +357,7 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
 
 async function getSystemSelectedText(): Promise<string> {
   try {
-    // Method 1: Try to get selected text using accessibility API (fastest, no clipboard interference)
+    // Use accessibility API to directly read selected text (no clipboard interference)
     const accessibilityScript = `
       tell application "System Events"
         try
@@ -386,42 +371,7 @@ async function getSystemSelectedText(): Promise<string> {
     `;
     
     const { stdout: accessibilityResult } = await execAsync(`osascript -e '${accessibilityScript}'`);
-    if (accessibilityResult.trim()) {
-      return accessibilityResult.trim();
-    }
-    
-    // Method 2: Immediate clipboard capture while preserving focus
-    const clipboardScript = `
-      tell application "System Events"
-        try
-          -- Remember the currently focused app
-          set frontApp to first application process whose frontmost is true
-          set frontAppName to name of frontApp
-          
-          -- Save current clipboard immediately
-          set originalClipboard to the clipboard
-          
-          -- Copy selection immediately (no delay)
-          keystroke "c" using {command down}
-          
-          -- Get the copied text immediately
-          set selectedText to the clipboard
-          
-          -- Restore original clipboard
-          set the clipboard to originalClipboard
-          
-          -- Restore focus to original app
-          tell application frontAppName to activate
-          
-          return selectedText
-        on error
-          return ""
-        end try
-      end tell
-    `;
-    
-    const { stdout: clipboardResult } = await execAsync(`osascript -e '${clipboardScript}'`);
-    return clipboardResult.trim();
+    return accessibilityResult.trim();
     
   } catch (error) {
     console.log('Failed to get system selected text:', error);
@@ -487,4 +437,4 @@ async function replaceSystemSelectedText(newText: string): Promise<boolean> {
     console.log('Failed to replace system selected text:', error);
     return false;
   }
-} 
+}
