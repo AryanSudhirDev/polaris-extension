@@ -5,43 +5,54 @@
 1. **Generate-Prompt command**  
    • Command Palette entry + default hotkey **⌘⇧G**  
    • Uses current selection *(fallback: whole file)*  
-   • Sends text to your AI API, insert`s or replaces with the response
+   • Sends text to your AI API, inserts or replaces with the response
 
-2. **Prompt Library side-panel**  
+2. **Temperature Control**  
+   • Status bar item `Polaris 🔥 0.3` shows current temperature setting  
+   • Click to adjust from 0.0 (focused) to 1.0 (creative)  
+   • Also accessible via Command Palette: "Polaris: Set Temperature"
+
+3. **Prompt Library side-panel**  
    • Tree view listing saved prompts  
    • Click to insert; context-menu: edit / delete  
    • Search box at top
-3
-3. **Prompt Editor webview**  
+
+4. **Prompt Editor webview**  
    • Rich form to create/update a prompt *(name, body, tags)*  
    • **Save** → updates side-panel list
 
-4. **Account / Auth (Clerk)**  
+5. **Account / Auth (Clerk)**  
    • Sign-in/out button in side-panel header  
    • After login, prompts sync from backend *(JWT stored in secrets)*  
    • Offline fallback to local storage
 
-5. **Settings**  
+6. **Settings**  
    • `polaris.apiBase` *(URL)*  
    • `polaris.insertMode` *("replace" | "below")*  
    • `polaris.hotkey` *(overrides default)*
+   • `polaris.temperature` *(0.0 - 1.0, default: 0.3)*
 
-6. **Quick-Prompt picker**  
+7. **Quick-Prompt picker**  
    • Command **"Polaris: Quick Insert Prompt"** opens a QuickPick list  
    • Choose prompt → insert immediately
 
+8. **Codebase Analysis**  
+   • Automatically analyzes your workspace (languages, frameworks, dependencies)  
+   • Provides contextual AI responses tailored to your tech stack  
+   • Cached for 30 seconds for performance
+
 ---
 
-These six components match (and surpass) the existing menu-bar app inside VS Code/Cursor.
+These features provide a comprehensive AI-powered development workflow inside VS Code/Cursor.
 
 ---
 
 ## Roadmap / Next Feature
 
-• **Code-Aware Refinement (planned)** – the extension will soon parse your open workspace (AST + semantic search) to feed contextual snippets into the AI. That way the model can tailor its suggestions to your actual codebase.
+• **Enhanced Code-Aware Refinement** – deeper AST parsing and semantic search for even more contextual AI suggestions based on your specific codebase patterns.
 
-This is tracked internally; contributions welcome once core scaffolding lands.
+This is tracked internally; contributions welcome.
 
 ### Getting Started
 
-The repo is in its infancy—just a roadmap for now. Pull requests welcome once scaffolding lands. 
+Install the extension and configure your OpenAI API key. The extension will automatically analyze your codebase and provide intelligent, context-aware AI assistance. 
