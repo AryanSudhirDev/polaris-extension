@@ -205,10 +205,10 @@ function activate(context) {
                 }
             }
             else {
-                // No editor context - put refined text in clipboard for pasting
-                await vscode.env.clipboard.writeText(aiResponse);
-                vscode.window.setStatusBarMessage('✓ Polaris: Refined text copied to clipboard!', 3000);
-                log.appendLine('Refined text copied to clipboard');
+                // No editor context – automatically paste into the front-most app
+                await autoPaste(aiResponse, log);
+                vscode.window.setStatusBarMessage('✓ Polaris: Refined text pasted!', 3000);
+                log.appendLine('Refined text auto-pasted');
             }
         });
     });
@@ -369,5 +369,45 @@ async function aiCall(input, apiBase, apiKey, log) {
         req.write(postData);
         req.end();
     });
+}
+/**
+ * Write text to clipboard, send a paste keystroke to the front-most app, then
+ * restore the user's original clipboard. Currently supports macOS (osascript),
+ * Windows (PowerShell), and Linux (xdotool if installed). Fail-safe: if the
+ * keystroke fails, the text remains on the clipboard so the user can paste
+ * manually.
+ */
+async function autoPaste(text, log) {
+    try {
+        const previousClipboard = await vscode.env.clipboard.readText();
+        await vscode.env.clipboard.writeText(text);
+        log.appendLine('📋 Clipboard updated with AI output for auto-paste');
+        if (process.platform === 'darwin') {
+            await execAsync(`osascript -e 'tell application "System Events" to keystroke "v" using {command down}'`);
+            log.appendLine('⌘V keystroke sent via AppleScript');
+        }
+        else if (process.platform === 'win32') {
+            await execAsync(`powershell -command "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^v')"`);
+            log.appendLine('Ctrl+V keystroke sent via PowerShell');
+        }
+        else {
+            // Best-effort Linux support – requires xdotool in PATH
+            try {
+                await execAsync(`xdotool key --clearmodifiers ctrl+v`);
+                log.appendLine('Ctrl+V keystroke sent via xdotool');
+            }
+            catch (linuxErr) {
+                log.appendLine('xdotool not available – auto-paste skipped on Linux');
+            }
+        }
+        // Restore clipboard after a short delay so the user's data isn't lost
+        setTimeout(() => {
+            vscode.env.clipboard.writeText(previousClipboard);
+            log.appendLine('🔙 Original clipboard content restored');
+        }, 700);
+    }
+    catch (err) {
+        log.appendLine(`❌ autoPaste error: ${err.message || err}`);
+    }
 }
 //# sourceMappingURL=extension.js.map
