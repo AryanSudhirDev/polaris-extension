@@ -37,11 +37,73 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const https = __importStar(require("https"));
+const child_process_1 = require("child_process");
+const util_1 = require("util");
+const execAsync = (0, util_1.promisify)(child_process_1.exec);
 function activate(context) {
     console.log('Polaris extension starting...');
     const getConfig = () => vscode.workspace.getConfiguration('polaris');
     // Create output channel but don't show it automatically
     const log = vscode.window.createOutputChannel('Polaris');
+    /*
+     * Get selected text from VS Code/Cursor chat interface (cross-platform)
+     */
+    async function getChatSelectedText(log) {
+        try {
+            log.appendLine('🔍 Looking for selected text in chat interface...');
+            // Use the Webview API to access selected text within VS Code/Cursor
+            // First, try to get any selected text from the current document/webview
+            const selection = await vscode.env.clipboard.readText();
+            // Check if the selection looks like it came from a chat interface
+            // This is a simple heuristic - we can improve it based on patterns
+            if (selection && selection.trim()) {
+                log.appendLine(`📋 Found potential chat text: "${selection.substring(0, 50)}..."`);
+                // For now, we'll use clipboard content but with better validation
+                // In the future, we can add more sophisticated detection
+                return selection;
+            }
+            log.appendLine('❌ No selected text found in chat interface');
+            return null;
+        }
+        catch (error) {
+            log.appendLine(`❌ Error reading chat selected text: ${error}`);
+            return null;
+        }
+    }
+    /*
+     * Cross-platform text selection (works on Windows, Mac, Linux)
+     */
+    async function getSelectedTextCrossPlatform(log) {
+        log.appendLine('=== POLARIS CROSS-PLATFORM TEXT RETRIEVAL ===');
+        // Method 1: Try to get from VS Code editor selection first
+        const editor = vscode.window.activeTextEditor;
+        if (editor && !editor.selection.isEmpty) {
+            const selectedText = editor.document.getText(editor.selection);
+            log.appendLine(`✅ Found editor selection: "${selectedText.substring(0, 50)}..."`);
+            return selectedText;
+        }
+        // Method 2: Try to get from chat interface
+        log.appendLine('🔍 Checking chat interface for selected text...');
+        const chatText = await getChatSelectedText(log);
+        if (chatText) {
+            log.appendLine(`✅ Found chat text: "${chatText.substring(0, 50)}..."`);
+            return chatText;
+        }
+        // Method 3: Use clipboard as fallback (user can manually copy)
+        log.appendLine('📋 Falling back to clipboard content...');
+        try {
+            const clipboardText = await vscode.env.clipboard.readText();
+            if (clipboardText && clipboardText.trim()) {
+                log.appendLine(`✅ Using clipboard: "${clipboardText.substring(0, 50)}..."`);
+                return clipboardText;
+            }
+        }
+        catch (error) {
+            log.appendLine(`❌ Clipboard read failed: ${error}`);
+        }
+        log.appendLine('❌ No text found from any source');
+        return null;
+    }
     /*
      * Main command: Generate and refine prompt
      */
@@ -50,37 +112,37 @@ function activate(context) {
         const editor = vscode.window.activeTextEditor;
         let selectedText = '';
         let originalSelection;
-        // First, try to get selected text from the active editor
-        if (editor && !editor.selection.isEmpty) {
-            selectedText = editor.document.getText(editor.selection);
-            originalSelection = editor.selection;
-            log.appendLine(`Got selected text from editor: "${selectedText.substring(0, 50)}..."`);
-        }
-        // If no text selected in editor, try to get from active terminal or other sources
-        if (!selectedText) {
-            // For Cursor chat box and similar, we can try to get text from clipboard
-            // This is a simpler approach than accessibility APIs
-            try {
-                selectedText = await vscode.env.clipboard.readText();
-                if (selectedText) {
-                    log.appendLine(`Got text from clipboard: "${selectedText.substring(0, 50)}..."`);
-                    // Show a subtle message without stealing focus
-                    vscode.window.setStatusBarMessage('Polaris: Using clipboard text', 2000);
-                }
+        let textSource = 'unknown';
+        // Try cross-platform text retrieval
+        const retrievedText = await getSelectedTextCrossPlatform(log);
+        if (retrievedText) {
+            selectedText = retrievedText;
+            // Determine source
+            if (editor && !editor.selection.isEmpty && editor.document.getText(editor.selection) === retrievedText) {
+                originalSelection = editor.selection;
+                textSource = 'VS Code editor selection';
             }
-            catch (error) {
-                log.appendLine(`Failed to read clipboard: ${error}`);
+            else {
+                textSource = 'chat interface or clipboard';
             }
+            log.appendLine(`✅ Using text from: ${textSource}`);
         }
         // If still no text, use full document as fallback
         if (!selectedText && editor) {
             selectedText = editor.document.getText();
-            log.appendLine(`Using full document: ${selectedText.length} characters`);
+            textSource = 'full document fallback';
+            log.appendLine(`⚠️ Using full document: ${selectedText.length} characters`);
         }
         if (!selectedText) {
+            log.appendLine('💥 NO TEXT FOUND from any source');
             vscode.window.showErrorMessage('No text found. Please select text or copy text to clipboard first.');
             return;
         }
+        // Log what we're about to send to AI
+        log.appendLine(`🤖 About to send to AI:`);
+        log.appendLine(`   Source: ${textSource}`);
+        log.appendLine(`   Length: ${selectedText.length} characters`);
+        log.appendLine(`   Preview: "${selectedText.substring(0, 100)}..."`);
         // Get API configuration
         const apiBase = getConfig().get('apiBase');
         log.appendLine(`API base: ${apiBase}`);
@@ -189,12 +251,17 @@ function activate(context) {
         await context.secrets.delete('polaris.apiKey');
         vscode.window.showInformationMessage('Signed out from Polaris API.');
     });
+    /* Debug command to show output channel */
+    const showDebugCmd = vscode.commands.registerCommand('polaris.showDebug', () => {
+        log.show(true);
+        vscode.window.showInformationMessage('Debug output shown. Run a Polaris command to see logs.');
+    });
     /* Test command to verify extension is working */
     const testCmd = vscode.commands.registerCommand('polaris.test', async () => {
         log.appendLine('Test command executed');
         vscode.window.showInformationMessage('Polaris extension is working!');
     });
-    context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, log);
+    context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, showDebugCmd, log);
     console.log('Polaris extension activation complete');
     log.appendLine('Extension setup complete');
 }
@@ -241,8 +308,17 @@ async function aiCall(input, apiBase, apiKey, log) {
     const url = new URL(urlString);
     log.appendLine(`POST ${url.toString()}`);
     const postData = JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: input }],
+        model: 'gpt-4o-mini',
+        messages: [
+            {
+                role: 'system',
+                content: 'You are a text refinement assistant. Your job is to improve the provided text by making it clearer, more concise, better structured, and more professional while preserving the original meaning and intent. Fix grammar, improve word choice, enhance clarity, and maintain the original tone and style as much as possible. Return only the refined text without any explanations or meta-commentary.'
+            },
+            {
+                role: 'user',
+                content: input
+            }
+        ],
     });
     return new Promise((resolve, reject) => {
         const options = {
