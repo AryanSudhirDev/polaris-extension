@@ -427,7 +427,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   /* ----------------- Temperature Status Bar ----------------- */
-  const temperatureStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  const temperatureStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
 
   function refreshTemperatureStatus() {
     const temp = getConfig().get<number>('temperature', 0.3);
@@ -452,13 +452,13 @@ export function activate(context: vscode.ExtensionContext) {
   /* ---------------- Command: Set Temperature --------------- */
   const setTemperatureCmd = vscode.commands.registerCommand('polaris.setTemperature', async () => {
     const current = getConfig().get<number>('temperature', 0.3);
-    const values = [0, 0.2, 0.4, 0.6, 0.8, 1].map((v) => ({
+    const values = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].map((v) => ({
       label: v.toString(),
       description: v === current ? 'Current' : undefined
     }));
 
     const pick = await vscode.window.showQuickPick(values, {
-      placeHolder: 'Select temperature (0 = deterministic, 1 = random)'
+      placeHolder: 'Select temperature (0 = more focused, 1 = more creative/varied)'
     });
     if (!pick) {
       return;
