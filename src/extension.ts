@@ -426,6 +426,50 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
 
+  /* ----------------- Temperature Status Bar ----------------- */
+  const temperatureStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+
+  function refreshTemperatureStatus() {
+    const temp = getConfig().get<number>('temperature', 0.3);
+    temperatureStatus.text = `Polaris $(flame) ${temp}`;
+    temperatureStatus.tooltip = 'Click to change temperature';
+    temperatureStatus.command = 'polaris.setTemperature';
+    temperatureStatus.show();
+  }
+
+  refreshTemperatureStatus();
+
+  context.subscriptions.push(temperatureStatus);
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('polaris.temperature')) {
+        refreshTemperatureStatus();
+      }
+    })
+  );
+
+  /* ---------------- Command: Set Temperature --------------- */
+  const setTemperatureCmd = vscode.commands.registerCommand('polaris.setTemperature', async () => {
+    const current = getConfig().get<number>('temperature', 0.3);
+    const values = [0, 0.2, 0.4, 0.6, 0.8, 1].map((v) => ({
+      label: v.toString(),
+      description: v === current ? 'Current' : undefined
+    }));
+
+    const pick = await vscode.window.showQuickPick(values, {
+      placeHolder: 'Select temperature (0 = deterministic, 1 = random)'
+    });
+    if (!pick) {
+      return;
+    }
+
+    await getConfig().update('temperature', parseFloat(pick.label), vscode.ConfigurationTarget.Global);
+    refreshTemperatureStatus();
+  });
+
+  context.subscriptions.push(setTemperatureCmd);
+
   context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, testCodebaseCmd, showDebugCmd, log);
   console.log('Polaris extension activation complete');
   log.appendLine('Extension setup complete');
@@ -504,7 +548,7 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
 
   const postData = JSON.stringify({
     model: 'gpt-3.5-turbo-0125',
-    temperature: 0.3,
+    temperature: vscode.workspace.getConfiguration('polaris').get<number>('temperature', 0.3),
     max_tokens: 500,
     messages: [
       { role: 'system', content: contextualPrompt },
