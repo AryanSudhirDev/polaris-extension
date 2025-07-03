@@ -40,6 +40,125 @@ const https = __importStar(require("https"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
+let cachedCodebaseContext = null;
+/**
+ * Analyze the current workspace to understand the codebase structure and tech stack
+ */
+async function analyzeCodebase(log) {
+    const context = {
+        languages: [],
+        frameworks: [],
+        dependencies: [],
+        fileStructure: [],
+        projectType: 'unknown'
+    };
+    try {
+        log.appendLine('🔍 Analyzing codebase...');
+        // Get all files in workspace (exclude common ignore patterns)
+        const allFiles = await vscode.workspace.findFiles('**/*', '{**/node_modules/**,**/.git/**,**/dist/**,**/build/**,**/.next/**}');
+        // Analyze file extensions and structure
+        const extensions = new Set();
+        const folders = new Set();
+        for (const file of allFiles.slice(0, 100)) { // Cap at 100 files for performance
+            const ext = file.path.split('.').pop()?.toLowerCase();
+            if (ext)
+                extensions.add(ext);
+            const folder = file.path.split('/').slice(-2, -1)[0];
+            if (folder)
+                folders.add(folder);
+        }
+        // Detect languages
+        if (extensions.has('ts') || extensions.has('tsx'))
+            context.languages.push('TypeScript');
+        if (extensions.has('js') || extensions.has('jsx'))
+            context.languages.push('JavaScript');
+        if (extensions.has('py'))
+            context.languages.push('Python');
+        if (extensions.has('java'))
+            context.languages.push('Java');
+        if (extensions.has('go'))
+            context.languages.push('Go');
+        if (extensions.has('rs'))
+            context.languages.push('Rust');
+        if (extensions.has('cpp') || extensions.has('c'))
+            context.languages.push('C/C++');
+        // Check for package.json to understand Node.js dependencies
+        const packageJsonFiles = await vscode.workspace.findFiles('**/package.json', '**/node_modules/**');
+        if (packageJsonFiles.length > 0) {
+            try {
+                const packageContent = await vscode.workspace.fs.readFile(packageJsonFiles[0]);
+                const packageJson = JSON.parse(new TextDecoder().decode(packageContent));
+                const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+                // Detect frameworks
+                if (deps.react)
+                    context.frameworks.push('React');
+                if (deps.vue)
+                    context.frameworks.push('Vue.js');
+                if (deps.angular)
+                    context.frameworks.push('Angular');
+                if (deps.next)
+                    context.frameworks.push('Next.js');
+                if (deps.express)
+                    context.frameworks.push('Express.js');
+                if (deps.fastify)
+                    context.frameworks.push('Fastify');
+                if (deps['@nestjs/core'])
+                    context.frameworks.push('NestJS');
+                if (deps.svelte)
+                    context.frameworks.push('Svelte');
+                // Key dependencies
+                context.dependencies = Object.keys(deps).slice(0, 10);
+                // Project type detection
+                if (deps['@types/vscode'] || deps.vscode) {
+                    context.projectType = 'VS Code Extension';
+                }
+                else if (packageJson.scripts?.dev || packageJson.scripts?.start) {
+                    if (deps.react || deps.vue || deps.angular) {
+                        context.projectType = 'Frontend Application';
+                    }
+                    else if (deps.express || deps.fastify || deps['@nestjs/core']) {
+                        context.projectType = 'Backend API';
+                    }
+                    else {
+                        context.projectType = 'Node.js Application';
+                    }
+                }
+                else if (Object.keys(deps).length > 0) {
+                    context.projectType = 'Node.js Project';
+                }
+            }
+            catch (err) {
+                log.appendLine(`⚠️ Could not parse package.json: ${err}`);
+            }
+        }
+        // Analyze folder structure
+        const commonFolders = ['src', 'components', 'pages', 'api', 'utils', 'lib', 'hooks', 'store'];
+        context.fileStructure = Array.from(folders).filter(f => commonFolders.includes(f));
+        log.appendLine(`✅ Codebase analysis complete:`);
+        log.appendLine(`   Languages: ${context.languages.join(', ') || 'none detected'}`);
+        log.appendLine(`   Frameworks: ${context.frameworks.join(', ') || 'none detected'}`);
+        log.appendLine(`   Project Type: ${context.projectType}`);
+        log.appendLine(`   Key Dependencies: ${context.dependencies.slice(0, 5).join(', ')}`);
+        // Cache the result for 30 seconds to speed up subsequent calls
+        cachedCodebaseContext = context;
+        setTimeout(() => { cachedCodebaseContext = null; }, 30000);
+        return context;
+    }
+    catch (err) {
+        log.appendLine(`❌ Codebase analysis failed: ${err.message}`);
+        return context;
+    }
+}
+/**
+ * Get codebase context with caching for performance
+ */
+async function getCodebaseContext(log) {
+    if (cachedCodebaseContext) {
+        log.appendLine('🚀 Using cached codebase analysis');
+        return cachedCodebaseContext;
+    }
+    return await analyzeCodebase(log);
+}
 function activate(context) {
     console.log('Polaris extension starting...');
     const getConfig = () => vscode.workspace.getConfiguration('polaris');
@@ -190,14 +309,17 @@ function activate(context) {
                     editBuilder.replace(originalSelection, aiResponse);
                 });
                 if (editSuccess) {
+                    // Also copy to clipboard so user can reuse elsewhere
+                    await vscode.env.clipboard.writeText(aiResponse);
                     // Select the newly inserted text to maintain selection
                     const newSelection = new vscode.Selection(originalSelection.start, new vscode.Position(originalSelection.start.line + aiResponse.split('\n').length - 1, aiResponse.split('\n').length === 1
                         ? originalSelection.start.character + aiResponse.length
                         : aiResponse.split('\n').pop().length));
                     editor.selection = newSelection;
                     // Show success message in status bar instead of popup
-                    vscode.window.setStatusBarMessage('✓ Polaris: Text refined and replaced!', 3000);
-                    log.appendLine('Text replaced and re-selected successfully');
+                    vscode.window.setStatusBarMessage('✓ Polaris: Text refined and copied to clipboard!', 10000);
+                    vscode.window.showInformationMessage('Polaris: Refined text ready (copied to clipboard)');
+                    log.appendLine('Text replaced, re-selected, and copied to clipboard');
                 }
                 else {
                     log.appendLine('Edit operation failed');
@@ -207,8 +329,9 @@ function activate(context) {
             else {
                 // No editor context – automatically paste into the front-most app
                 await autoPaste(aiResponse, log);
-                vscode.window.setStatusBarMessage('✓ Polaris: Refined text pasted!', 3000);
-                log.appendLine('Refined text auto-pasted');
+                vscode.window.setStatusBarMessage('✓ Polaris: Refined text pasted & copied to clipboard!', 10000);
+                vscode.window.showInformationMessage('Polaris: Refined text ready (copied to clipboard)');
+                log.appendLine('Refined text auto-pasted and copied to clipboard');
             }
         });
     });
@@ -261,7 +384,27 @@ function activate(context) {
         log.appendLine('Test command executed');
         vscode.window.showInformationMessage('Polaris extension is working!');
     });
-    context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, showDebugCmd, log);
+    /* Test codebase analysis command */
+    const testCodebaseCmd = vscode.commands.registerCommand('polaris.testCodebase', async () => {
+        log.show(true); // Show output panel
+        log.appendLine('=== CODEBASE ANALYSIS TEST ===');
+        const context = await analyzeCodebase(log);
+        // Display in both log and popup
+        const summary = `
+📁 Project Type: ${context.projectType}
+🔤 Languages: ${context.languages.join(', ') || 'None detected'}
+⚛️ Frameworks: ${context.frameworks.join(', ') || 'None detected'}
+📦 Dependencies: ${context.dependencies.slice(0, 5).join(', ')}${context.dependencies.length > 5 ? '...' : ''}
+📂 Structure: ${context.fileStructure.join(', ') || 'Standard layout'}
+    `.trim();
+        log.appendLine(summary);
+        vscode.window.showInformationMessage(`Codebase Analysis Complete!\nCheck Output → Polaris for details.`, 'Open Output').then(action => {
+            if (action === 'Open Output') {
+                log.show(true);
+            }
+        });
+    });
+    context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, testCodebaseCmd, showDebugCmd, log);
     console.log('Polaris extension activation complete');
     log.appendLine('Extension setup complete');
 }
@@ -307,27 +450,27 @@ async function aiCall(input, apiBase, apiKey, log) {
     const urlString = apiBase ? `${apiBase.replace(/\/$/, '')}/v1/chat/completions` : 'https://api.openai.com/v1/chat/completions';
     const url = new URL(urlString);
     log.appendLine(`POST ${url.toString()}`);
-    const systemPrompt = `You are a senior product designer, technical writer, and full-stack architect.
-
-When the user gives you a short idea, transform it into a thorough, actionable spec. Return your answer in markdown with these sections (include only those that make sense):
-
-1. **Refined Summary** – rewrite the original sentence in polished, professional English.
-2. **User Stories / Use-cases** – bullet list in the format "As a <role> I want <goal> so that <why>".
-3. **Feature Breakdown** – numbered list of concrete features.
-4. **Architecture & Tech Recommendations** – high-level stack, libraries, services.
-5. **Development Plan** – phased roadmap with milestones.
-6. **Edge Cases & Risks** – bullets.
-7. **Accessibility & UX Notes** – bullets.
-8. **Example Snippets / Pseudocode** – optional, include only if clarifying.
-
-Be explicit, avoid fluff, maintain the original intent, and do NOT provide explanatory commentary outside these sections.`;
+    // Analyze codebase for context
+    const codebaseContext = await getCodebaseContext(log);
+    // Build enhanced system prompt
+    let contextualPrompt = `You are a **senior product designer**, **technical writer**, and **full-stack architect** with 10+ years of experience in enterprise software development. Your expertise lies in transforming high-level concepts into comprehensive, actionable technical specifications.`;
+    // Append codebase context if available
+    if (codebaseContext.projectType !== 'unknown' || codebaseContext.languages.length > 0 || codebaseContext.frameworks.length > 0 || codebaseContext.dependencies.length > 0) {
+        contextualPrompt += `\n\n### CODEBASE CONTEXT ###\n**Project Type:** ${codebaseContext.projectType}\n**Languages:** ${codebaseContext.languages.join(', ') || 'Not detected'}\n**Frameworks:** ${codebaseContext.frameworks.join(', ') || 'None detected'}\n**Key Dependencies:** ${codebaseContext.dependencies.slice(0, 8).join(', ')}\n**Structure:** ${codebaseContext.fileStructure.join(', ') || 'Standard layout'}\n\n**INTEGRATION DIRECTIVE:** Leverage this technical context to ensure all recommendations align with the existing tech stack and project architecture. Prioritize solutions that integrate seamlessly with current ${codebaseContext.frameworks.length > 0 ? codebaseContext.frameworks.join('/') : 'technology stack'}.`;
+    }
+    contextualPrompt += `\n\n### CORE OBJECTIVE ###\nTransform brief user ideas into comprehensive, production-ready technical specifications that serve as definitive blueprints for development teams.\n\n### REASONING METHODOLOGY ###\nApply step-by-step analysis: (1) Parse user intent and constraints, (2) Identify technical requirements and dependencies, (3) Structure comprehensive specification, (4) Validate against best practices.\n\n### OUTPUT STRUCTURE ###\nGenerate your response using **only** the following sections that are relevant to the user's request. Use clear markdown formatting with proper hierarchical headers:\n\n#### **1. REFINED SUMMARY**\n- Rewrite the original concept in professional, precise language\n- Clarify scope, objectives, and success metrics\n- Maximum 2-3 sentences, focus on core value proposition\n\n#### **2. USER STORIES & USE CASES**\n- Format: "As a [specific role], I want [specific goal] so that [clear benefit/outcome]"\n- Prioritize by impact and feasibility\n- Include edge cases and error scenarios\n\n#### **3. FEATURE BREAKDOWN**\n- Enumerate concrete, measurable features\n- Organize by priority (MVP vs. future releases)\n- Include technical acceptance criteria for each feature\n\n#### **4. ARCHITECTURE & TECHNICAL RECOMMENDATIONS**\n- Specify recommended tech stack with rationale\n- Include integration patterns, data flow, and system boundaries\n- Address scalability, security, and maintainability concerns\n${codebaseContext.frameworks.length > 0 ? `- **INTEGRATION PRIORITY:** Detail how to integrate with existing ${codebaseContext.frameworks.join('/')} infrastructure` : ''}\n\n#### **5. DEVELOPMENT ROADMAP**\n- Phase-based delivery plan with clear milestones\n- Resource requirements and timeline estimates\n- Risk mitigation strategies for each phase\n\n#### **6. RISK ASSESSMENT & MITIGATION**\n- Technical risks (performance, security, compatibility)\n- Business risks (market fit, resource constraints)\n- Mitigation strategies with contingency plans\n\n#### **7. ACCESSIBILITY & USER EXPERIENCE**\n- WCAG compliance requirements\n- Cross-platform compatibility considerations\n- Performance optimization strategies\n\n### CONSTRAINTS & QUALITY STANDARDS ###\n- **Specificity:** Provide concrete, implementable details\n- **Clarity:** Use precise technical language without jargon\n- **Completeness:** Address all aspects of the request\n- **Actionability:** Every recommendation must be executable\n- **No Commentary:** Exclude meta-explanations or process descriptions\n\n### EXAMPLES FOR GUIDANCE ###\n"""\nInput: "Build a task management app"\nOutput: Comprehensive spec covering user authentication, task CRUD operations, real-time collaboration, notification systems, etc.\n\nInput: "Create a data visualization dashboard"\nOutput: Detailed spec including data sources, chart types, filtering capabilities, export functions, responsive design, etc.\n"""\n\n**EXECUTE IMMEDIATELY:** Process the user's input and generate the structured specification following the exact format above. Begin with the most relevant section based on the input complexity.`;
     const postData = JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-3.5-turbo-0125',
+        temperature: 0.3,
+        max_tokens: 500,
         messages: [
-            { role: 'system', content: systemPrompt },
+            { role: 'system', content: contextualPrompt },
             { role: 'user', content: input }
-        ],
+        ]
     });
+    // Debug: show first 200 chars of payload (avoid logging full user text)
+    log.appendLine(`🚚 Payload preview: ${postData.substring(0, 200)}...`);
+    log.appendLine(`🎯 Context-aware prompt enabled: ${codebaseContext.projectType !== 'unknown' || codebaseContext.languages.length > 0 || codebaseContext.frameworks.length > 0 ? 'YES' : 'NO'}`);
     return new Promise((resolve, reject) => {
         const options = {
             hostname: url.hostname,
@@ -387,48 +530,40 @@ Be explicit, avoid fluff, maintain the original intent, and do NOT provide expla
  */
 async function autoPaste(text, log) {
     try {
-        const previousClipboard = await vscode.env.clipboard.readText();
         await vscode.env.clipboard.writeText(text);
         log.appendLine('📋 Clipboard updated with AI output for auto-paste');
+        let pasteSuccessful = false;
         if (process.platform === 'darwin') {
             try {
                 const { stdout, stderr } = await execAsync(`osascript -e 'tell application "System Events" to keystroke "v" using {command down}'`);
-                log.appendLine(`⌘V keystroke via osascript (keystroke). stdout: ${stdout.trim()} stderr: ${stderr.trim()}`);
+                log.appendLine(`⌘V keystroke via osascript. stdout: ${stdout.trim()} stderr: ${stderr.trim()}`);
+                pasteSuccessful = true;
             }
-            catch (keystrokeErr) {
-                log.appendLine(`⚠️ keystroke method failed: ${keystrokeErr.message || keystrokeErr}`);
-                // Fallback: use key code 9 (v)
-                try {
-                    const { stdout, stderr } = await execAsync(`osascript -e 'tell application "System Events" to key code 9 using {command down}'`);
-                    log.appendLine(`⌘V keystroke via osascript (key code). stdout: ${stdout.trim()} stderr: ${stderr.trim()}`);
-                }
-                catch (keycodeErr) {
-                    log.appendLine(`❌ key code method also failed: ${keycodeErr.message || keycodeErr}`);
-                }
-            }
+            catch { /* ignore paste failure */ }
         }
         else if (process.platform === 'win32') {
-            await execAsync(`powershell -command "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^v')"`);
-            log.appendLine('Ctrl+V keystroke sent via PowerShell');
+            try {
+                await execAsync(`powershell -command "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^v')"`);
+                log.appendLine('Ctrl+V keystroke sent via PowerShell');
+                pasteSuccessful = true;
+            }
+            catch { /* ignore paste failure */ }
         }
         else {
-            // Best-effort Linux support – requires xdotool in PATH
             try {
                 await execAsync(`xdotool key --clearmodifiers ctrl+v`);
                 log.appendLine('Ctrl+V keystroke sent via xdotool');
+                pasteSuccessful = true;
             }
-            catch (linuxErr) {
-                log.appendLine('xdotool not available – auto-paste skipped on Linux');
-            }
+            catch { /* ignore paste failure */ }
         }
-        // Restore clipboard after a short delay so the user's data isn't lost
-        setTimeout(() => {
-            vscode.env.clipboard.writeText(previousClipboard);
-            log.appendLine('🔙 Original clipboard content restored');
-        }, 700);
+        if (!pasteSuccessful) {
+            log.appendLine('📋 Auto-paste failed, text remains on clipboard');
+        }
     }
     catch (err) {
         log.appendLine(`❌ autoPaste error: ${err.message || err}`);
+        log.appendLine('📋 AI output kept in clipboard for manual paste');
     }
 }
 //# sourceMappingURL=extension.js.map
