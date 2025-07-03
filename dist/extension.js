@@ -383,8 +383,21 @@ async function autoPaste(text, log) {
         await vscode.env.clipboard.writeText(text);
         log.appendLine('📋 Clipboard updated with AI output for auto-paste');
         if (process.platform === 'darwin') {
-            await execAsync(`osascript -e 'tell application "System Events" to keystroke "v" using {command down}'`);
-            log.appendLine('⌘V keystroke sent via AppleScript');
+            try {
+                const { stdout, stderr } = await execAsync(`osascript -e 'tell application "System Events" to keystroke "v" using {command down}'`);
+                log.appendLine(`⌘V keystroke via osascript (keystroke). stdout: ${stdout.trim()} stderr: ${stderr.trim()}`);
+            }
+            catch (keystrokeErr) {
+                log.appendLine(`⚠️ keystroke method failed: ${keystrokeErr.message || keystrokeErr}`);
+                // Fallback: use key code 9 (v)
+                try {
+                    const { stdout, stderr } = await execAsync(`osascript -e 'tell application "System Events" to key code 9 using {command down}'`);
+                    log.appendLine(`⌘V keystroke via osascript (key code). stdout: ${stdout.trim()} stderr: ${stderr.trim()}`);
+                }
+                catch (keycodeErr) {
+                    log.appendLine(`❌ key code method also failed: ${keycodeErr.message || keycodeErr}`);
+                }
+            }
         }
         else if (process.platform === 'win32') {
             await execAsync(`powershell -command "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^v')"`);
