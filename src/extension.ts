@@ -1,82 +1,59 @@
 import * as vscode from 'vscode';
 import * as https from 'https';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-
-const execAsync = promisify(exec);
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Polaris extension activating...');
+  console.log('Polaris extension starting...');
+  
   const getConfig = () => vscode.workspace.getConfiguration('polaris');
-  const log = vscode.window.createOutputChannel('Polaris');
-  log.appendLine('Extension activated');
-  
-  // Test environment variable immediately
-  const envKey = process.env.OPENAI_API_KEY || process.env.POLARIS_API_KEY;
-  if (envKey) {
-    log.appendLine(`Environment API key found: ${envKey.substring(0, 10)}...`);
-  } else {
-    log.appendLine('No environment API key found');
-  }
-  
-  console.log('Output channel created');
 
+  // Create output channel but don't show it automatically
+  const log = vscode.window.createOutputChannel('Polaris');
+  
   /*
-   * Generate-Prompt command
-   * Grabs current selection (fallback: full document), sends to AI, then
-   * inserts or replaces according to `polaris.insertMode`.
-   * The AI call is stubbed for now (echoes the input).
+   * Main command: Generate and refine prompt
    */
   const generatePromptCmd = vscode.commands.registerCommand('polaris.generatePrompt', async () => {
-    console.log('Generate prompt command triggered');
-    log.appendLine('GeneratePrompt invoked');
-    log.show();
-    vscode.window.setStatusBarMessage('Polaris: contacting AI…', 3000);
+    log.appendLine('=== Polaris Generate Prompt Command Started ===');
     
-    let selectedText = '';
-    let useClipboard = false;
     const editor = vscode.window.activeTextEditor;
+    let selectedText = '';
+    let originalSelection: vscode.Selection | undefined;
     
-    // First try to get text from active editor
-    if (editor) {
-      const selection = editor.selection;
-      selectedText = selection.isEmpty ? '' : editor.document.getText(selection);
-      log.appendLine(`Got text from VS Code editor: "${selectedText.substring(0, 50)}..."`);
+    // First, try to get selected text from the active editor
+    if (editor && !editor.selection.isEmpty) {
+      selectedText = editor.document.getText(editor.selection);
+      originalSelection = editor.selection;
+      log.appendLine(`Got selected text from editor: "${selectedText.substring(0, 50)}..."`);
     }
     
-          // If no text from editor, try system-wide selection (for chat boxes, etc.)
-      if (!selectedText) {
-        log.appendLine('No text selected in VS Code editor, trying system-wide selection...');
-        try {
-          selectedText = await getSystemSelectedText();
-          if (selectedText) {
-            useClipboard = true;
-            log.appendLine(`Got text from system selection: "${selectedText.substring(0, 50)}..."`);
-            vscode.window.showInformationMessage('Using selected text from system. Refined text will replace selection.');
-          } else {
-            log.appendLine('No system selection found - may need accessibility permissions');
-            vscode.window.showWarningMessage('No text selected. For system-wide selection, VS Code needs accessibility permissions in System Preferences > Security & Privacy > Accessibility.');
-          }
-        } catch (error) {
-          log.appendLine(`Failed to get system selection: ${error}`);
-          vscode.window.showWarningMessage('Failed to access system selection. Check accessibility permissions for VS Code.');
+    // If no text selected in editor, try to get from active terminal or other sources
+    if (!selectedText) {
+      // For Cursor chat box and similar, we can try to get text from clipboard
+      // This is a simpler approach than accessibility APIs
+      try {
+        selectedText = await vscode.env.clipboard.readText();
+        if (selectedText) {
+          log.appendLine(`Got text from clipboard: "${selectedText.substring(0, 50)}..."`);
+          // Show a subtle message without stealing focus
+          vscode.window.setStatusBarMessage('Polaris: Using clipboard text', 2000);
         }
+      } catch (error) {
+        log.appendLine(`Failed to read clipboard: ${error}`);
       }
+    }
     
-    // If still no text, fall back to full document
+    // If still no text, use full document as fallback
     if (!selectedText && editor) {
       selectedText = editor.document.getText();
       log.appendLine(`Using full document: ${selectedText.length} characters`);
     }
     
     if (!selectedText) {
-      vscode.window.showErrorMessage('No text selected. Please select text and try again. For system-wide selection, VS Code needs accessibility permissions in System Preferences > Security & Privacy > Accessibility.');
+      vscode.window.showErrorMessage('No text found. Please select text or copy text to clipboard first.');
       return;
     }
 
+    // Get API configuration
     const apiBase = getConfig().get<string>('apiBase');
     log.appendLine(`API base: ${apiBase}`);
     let apiKey = await context.secrets.get('polaris.apiKey');
@@ -97,66 +74,64 @@ export function activate(context: vscode.ExtensionContext) {
     
     if (!apiKey) {
       log.appendLine('No API key found');
-      console.log('No API key found');
       vscode.window.showWarningMessage('API key not set. Run "Polaris: Sign In" or set OPENAI_API_KEY environment variable.');
       return;
     }
-    log.appendLine('API key found');
-    console.log('API key found, proceeding with request');
+    
+    log.appendLine('API key found, proceeding with request');
 
-    await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'Polaris: Generating…' }, async () => {
+    // Show progress without stealing focus
+    await vscode.window.withProgress({ 
+      location: vscode.ProgressLocation.Notification, 
+      title: 'Polaris: Generating…',
+      cancellable: false
+    }, async () => {
       log.appendLine(`Sending ${selectedText.length} chars to AI`);
       let aiResponse: string;
+      
       try {
         aiResponse = await aiCall(selectedText, apiBase, apiKey!, log);
       } catch (err: any) {
         log.appendLine(`AI call failed: ${err?.message ?? err}`);
         vscode.window.showErrorMessage(err.message || 'AI request failed');
-        log.appendLine(`Error: ${err?.message ?? err}`);
         return;
       }
 
       log.appendLine(`Got AI response: ${aiResponse.substring(0, 100)}...`);
       
-      if (useClipboard) {
-        // Try to replace the selected text directly
-        const replaced = await replaceSystemSelectedText(aiResponse);
-        if (replaced) {
-          vscode.window.showInformationMessage('Text refined and replaced!');
-          log.appendLine('Refined text replaced in system');
-        } else {
-          // Fallback: put refined text in clipboard
-          await vscode.env.clipboard.writeText(aiResponse);
-          vscode.window.showInformationMessage('Text refined and copied to clipboard! Paste it back where you need it.');
-          log.appendLine('Refined text copied to clipboard');
-        }
-      } else if (editor) {
-        // Replace text in editor
-        const selection = editor.selection;
+      // Handle text replacement based on context
+      if (editor && originalSelection) {
+        // We have an editor with selected text - replace it directly
         const editSuccess = await editor.edit((editBuilder: vscode.TextEditorEdit) => {
-          log.appendLine('Starting edit operation');
-          const mode = getConfig().get<'replace' | 'below'>('insertMode', 'below');
-          log.appendLine(`Insert mode: ${mode}`);
-          if (mode === 'replace' && !selection.isEmpty) {
-            log.appendLine('Replacing selection');
-            editBuilder.replace(selection, aiResponse);
-          } else if (mode === 'replace') {
-            log.appendLine('Replacing entire document');
-            const fullRange = new vscode.Range(0, 0, editor.document.lineCount, 0);
-            editBuilder.replace(fullRange, aiResponse);
-          } else {
-            const line = selection.isEmpty ? selection.active.line : selection.end.line;
-            log.appendLine(`Inserting at line ${line}`);
-            const lineEnd = editor.document.lineAt(line).range.end;
-            editBuilder.insert(lineEnd, `\n${aiResponse}\n`);
-          }
+          log.appendLine('Replacing selected text in editor');
+          editBuilder.replace(originalSelection!, aiResponse);
         });
+        
         if (editSuccess) {
-          log.appendLine('Edit operation successful');
+          // Select the newly inserted text to maintain selection
+          const newSelection = new vscode.Selection(
+            originalSelection.start,
+            new vscode.Position(
+              originalSelection.start.line + aiResponse.split('\n').length - 1,
+              aiResponse.split('\n').length === 1 
+                ? originalSelection.start.character + aiResponse.length
+                : aiResponse.split('\n').pop()!.length
+            )
+          );
+          editor.selection = newSelection;
+          
+          // Show success message in status bar instead of popup
+          vscode.window.setStatusBarMessage('✓ Polaris: Text refined and replaced!', 3000);
+          log.appendLine('Text replaced and re-selected successfully');
         } else {
           log.appendLine('Edit operation failed');
-          vscode.window.showErrorMessage('Failed to insert AI response');
+          vscode.window.showErrorMessage('Failed to replace text');
         }
+      } else {
+        // No editor context - put refined text in clipboard for pasting
+        await vscode.env.clipboard.writeText(aiResponse);
+        vscode.window.setStatusBarMessage('✓ Polaris: Refined text copied to clipboard!', 3000);
+        log.appendLine('Refined text copied to clipboard');
       }
     });
   });
@@ -213,27 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage('Polaris extension is working!');
   });
 
-  /* Test system-wide selection command */
-  const testSystemCmd = vscode.commands.registerCommand('polaris.testSystemSelection', async () => {
-    log.appendLine('Testing system-wide selection...');
-    log.show();
-    
-    try {
-      const selectedText = await getSystemSelectedText();
-      if (selectedText) {
-        vscode.window.showInformationMessage(`System selection works! Got: "${selectedText.substring(0, 100)}..."`);
-        log.appendLine(`System selection successful: "${selectedText}"`);
-      } else {
-        vscode.window.showWarningMessage('No system selection found. Select some text outside VS Code and try again.');
-        log.appendLine('No system selection found');
-      }
-    } catch (error) {
-      vscode.window.showErrorMessage(`System selection failed: ${error}`);
-      log.appendLine(`System selection error: ${error}`);
-    }
-  });
-
-  context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, testSystemCmd, log);
+  context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, log);
   console.log('Polaris extension activation complete');
   log.appendLine('Extension setup complete');
 }
@@ -355,86 +310,3 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
   });
 }
 
-async function getSystemSelectedText(): Promise<string> {
-  try {
-    // Use accessibility API to directly read selected text (no clipboard interference)
-    const accessibilityScript = `
-      tell application "System Events"
-        try
-          set frontApp to first application process whose frontmost is true
-          set selectedText to value of attribute "AXSelectedText" of frontApp
-          return selectedText
-        on error
-          return ""
-        end try
-      end tell
-    `;
-    
-    const { stdout: accessibilityResult } = await execAsync(`osascript -e '${accessibilityScript}'`);
-    return accessibilityResult.trim();
-    
-  } catch (error) {
-    console.log('Failed to get system selected text:', error);
-    return '';
-  }
-}
-
-async function replaceSystemSelectedText(newText: string): Promise<boolean> {
-  try {
-    // Create a temporary file with the new text
-    const tempFile = path.join(os.tmpdir(), `polaris-${Date.now()}.txt`);
-    fs.writeFileSync(tempFile, newText, 'utf8');
-    
-    const replaceScript = `
-      tell application "System Events"
-        try
-          -- Remember the currently focused app
-          set frontApp to first application process whose frontmost is true
-          set frontAppName to name of frontApp
-          
-          -- Save current clipboard
-          set originalClipboard to the clipboard
-          
-          -- Read new text from file
-          set newText to read POSIX file "${tempFile}" as «class utf8»
-          
-          -- Set new text to clipboard
-          set the clipboard to newText
-          
-          -- Ensure the original app is focused
-          tell application frontAppName to activate
-          delay 0.1
-          
-          -- Paste the new text (this should replace the selected text)
-          keystroke "v" using {command down}
-          
-          -- Restore original clipboard
-          set the clipboard to originalClipboard
-          
-          return "success"
-        on error errMsg
-          -- Try to restore clipboard even on error
-          try
-            set the clipboard to originalClipboard
-          end try
-          return "error: " & errMsg
-        end try
-      end tell
-    `;
-    
-    const { stdout } = await execAsync(`osascript -e '${replaceScript}'`);
-    
-    // Clean up temp file
-    try {
-      fs.unlinkSync(tempFile);
-    } catch (e) {
-      // Ignore cleanup errors
-    }
-    
-    return stdout.trim() === "success";
-    
-  } catch (error) {
-    console.log('Failed to replace system selected text:', error);
-    return false;
-  }
-}
