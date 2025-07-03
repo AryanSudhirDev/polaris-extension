@@ -51,6 +51,10 @@
       {
         "command": "polaris.testSystemSelection",
         "title": "Polaris: Test System-Wide Selection"
+      },
+      {
+        "command": "polaris.setTemperature",
+        "title": "Polaris: Set Temperature"
       }
     ],
     "keybindings": [
@@ -97,6 +101,13 @@
           "type": "string",
           "default": "shift+alt+cmd+d",
           "description": "Override default hotkey for Generate Prompt"
+        },
+        "polaris.temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3,
+          "description": "Temperature for AI model (0 = deterministic, 1 = very random)"
         }
       }
     }
