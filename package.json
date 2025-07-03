@@ -2,7 +2,7 @@
   "name": "polaris-extension",
   "displayName": "Polaris",
   "description": "AI-powered prompt workflow inside VS Code / Cursor.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"
