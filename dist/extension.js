@@ -370,7 +370,7 @@ async function aiCall(input, apiBase, apiKey, log) {
 }
 async function getSystemSelectedText() {
     try {
-        // Method 1: Try to get selected text using accessibility API
+        // Method 1: Try to get selected text using accessibility API (fastest, no clipboard interference)
         const accessibilityScript = `
       tell application "System Events"
         try
@@ -386,22 +386,28 @@ async function getSystemSelectedText() {
         if (accessibilityResult.trim()) {
             return accessibilityResult.trim();
         }
-        // Method 2: Fallback - safely copy selection without disturbing clipboard
+        // Method 2: Immediate clipboard capture while preserving focus
         const clipboardScript = `
       tell application "System Events"
         try
-          -- Save current clipboard
+          -- Remember the currently focused app
+          set frontApp to first application process whose frontmost is true
+          set frontAppName to name of frontApp
+          
+          -- Save current clipboard immediately
           set originalClipboard to the clipboard
           
-          -- Copy current selection
+          -- Copy selection immediately (no delay)
           keystroke "c" using {command down}
-          delay 0.2
           
-          -- Get the copied text
+          -- Get the copied text immediately
           set selectedText to the clipboard
           
           -- Restore original clipboard
           set the clipboard to originalClipboard
+          
+          -- Restore focus to original app
+          tell application frontAppName to activate
           
           return selectedText
         on error
@@ -419,14 +425,16 @@ async function getSystemSelectedText() {
 }
 async function replaceSystemSelectedText(newText) {
     try {
-        // Save current clipboard, replace text, restore clipboard
-        // Use a more robust approach by writing the text to a temporary file
         // Create a temporary file with the new text
         const tempFile = path.join(os.tmpdir(), `polaris-${Date.now()}.txt`);
         fs.writeFileSync(tempFile, newText, 'utf8');
         const replaceScript = `
       tell application "System Events"
         try
+          -- Remember the currently focused app
+          set frontApp to first application process whose frontmost is true
+          set frontAppName to name of frontApp
+          
           -- Save current clipboard
           set originalClipboard to the clipboard
           
@@ -436,15 +444,22 @@ async function replaceSystemSelectedText(newText) {
           -- Set new text to clipboard
           set the clipboard to newText
           
-          -- Paste the new text
-          keystroke "v" using {command down}
+          -- Ensure the original app is focused
+          tell application frontAppName to activate
           delay 0.1
+          
+          -- Paste the new text (this should replace the selected text)
+          keystroke "v" using {command down}
           
           -- Restore original clipboard
           set the clipboard to originalClipboard
           
           return "success"
         on error errMsg
+          -- Try to restore clipboard even on error
+          try
+            set the clipboard to originalClipboard
+          end try
           return "error: " & errMsg
         end try
       end tell
