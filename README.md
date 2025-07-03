@@ -5,13 +5,13 @@
 1. **Generate-Prompt command**  
    • Command Palette entry + default hotkey **⌘⇧G**  
    • Uses current selection *(fallback: whole file)*  
-   • Sends text to your AI API, inserts or replaces with the response
+   • Sends text to your AI API, insert`s or replaces with the response
 
 2. **Prompt Library side-panel**  
    • Tree view listing saved prompts  
    • Click to insert; context-menu: edit / delete  
    • Search box at top
-
+3
 3. **Prompt Editor webview**  
    • Rich form to create/update a prompt *(name, body, tags)*  
    • **Save** → updates side-panel list

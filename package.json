@@ -2,16 +2,13 @@
   "name": "polaris-extension",
   "displayName": "Polaris",
   "description": "AI-powered prompt workflow inside VS Code / Cursor.",
-  "version": "0.0.1",
+  "version": "0.0.16",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"
   },
   "categories": ["Other"],
   "activationEvents": [
-    "onCommand:polaris.generatePrompt",
-    "onView:polarisPromptLibrary",
-    "onCommand:polaris.quickInsertPrompt",
     "onStartupFinished"
   ],
   "main": "./dist/extension.js",
@@ -36,13 +33,17 @@
       {
         "command": "polaris.account.signOut",
         "title": "Polaris: Sign Out"
+      },
+      {
+        "command": "polaris.test",
+        "title": "Polaris: Test Extension"
       }
     ],
     "keybindings": [
       {
         "command": "polaris.generatePrompt",
-        "key": "cmd+shift+g",
-        "mac": "cmd+shift+g",
+        "key": "ctrl+shift+alt+d",
+        "mac": "shift+alt+cmd+d",
         "when": "editorTextFocus"
       }
     ],
@@ -50,8 +51,7 @@
       "activitybar": [
         {
           "id": "polaris",
-          "title": "Polaris",
-          "icon": "resources/polaris.svg"
+          "title": "Polaris"
         }
       ]
     },
@@ -69,7 +69,7 @@
       "properties": {
         "polaris.apiBase": {
           "type": "string",
-          "default": "https://api.polaris.ai",
+          "default": "https://api.openai.com",
           "description": "Base URL for Polaris API"
         },
         "polaris.insertMode": {
@@ -80,7 +80,7 @@
         },
         "polaris.hotkey": {
           "type": "string",
-          "default": "cmd+shift+g",
+          "default": "shift+alt+cmd+d",
           "description": "Override default hotkey for Generate Prompt"
         }
       }
