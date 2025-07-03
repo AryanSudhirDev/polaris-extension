@@ -37,6 +37,12 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const https = __importStar(require("https"));
+const child_process_1 = require("child_process");
+const util_1 = require("util");
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+const os = __importStar(require("os"));
+const execAsync = (0, util_1.promisify)(child_process_1.exec);
 function activate(context) {
     console.log('Polaris extension activating...');
     const getConfig = () => vscode.workspace.getConfiguration('polaris');
@@ -62,16 +68,59 @@ function activate(context) {
         log.appendLine('GeneratePrompt invoked');
         log.show();
         vscode.window.setStatusBarMessage('Polaris: contacting AI…', 3000);
+        let selectedText = '';
+        let useClipboard = false;
         const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            log.appendLine('No active editor');
-            console.log('No active editor found');
-            vscode.window.showWarningMessage('No active editor');
+        // First try to get text from active editor
+        if (editor) {
+            const selection = editor.selection;
+            selectedText = selection.isEmpty ? '' : editor.document.getText(selection);
+            log.appendLine(`Got text from VS Code editor: "${selectedText.substring(0, 50)}..."`);
+        }
+        // If no text from editor, try system-wide selection (for chat boxes, etc.)
+        if (!selectedText) {
+            log.appendLine('No text selected in VS Code editor, trying system-wide selection...');
+            try {
+                selectedText = await getSystemSelectedText();
+                if (selectedText) {
+                    useClipboard = true;
+                    log.appendLine(`Got text from system selection: "${selectedText.substring(0, 50)}..."`);
+                    vscode.window.showInformationMessage('Using selected text from system. Refined text will replace selection.');
+                }
+                else {
+                    log.appendLine('No system selection found - may need accessibility permissions');
+                    vscode.window.showWarningMessage('No text selected. For system-wide selection, VS Code needs accessibility permissions in System Preferences > Security & Privacy > Accessibility.');
+                }
+            }
+            catch (error) {
+                log.appendLine(`Failed to get system selection: ${error}`);
+                vscode.window.showWarningMessage('Failed to access system selection. Check accessibility permissions for VS Code.');
+            }
+        }
+        // If still no text, try clipboard as final fallback
+        if (!selectedText) {
+            log.appendLine('No system selection found, trying clipboard as fallback...');
+            try {
+                selectedText = await vscode.env.clipboard.readText();
+                if (selectedText) {
+                    useClipboard = true;
+                    log.appendLine(`Got text from clipboard: "${selectedText.substring(0, 50)}..."`);
+                    vscode.window.showInformationMessage('Using clipboard text. Refined text will be copied back to clipboard.');
+                }
+            }
+            catch (error) {
+                log.appendLine(`Failed to read clipboard: ${error}`);
+            }
+        }
+        // If still no text, fall back to full document
+        if (!selectedText && editor) {
+            selectedText = editor.document.getText();
+            log.appendLine(`Using full document: ${selectedText.length} characters`);
+        }
+        if (!selectedText) {
+            vscode.window.showErrorMessage('No text found. Please select text in VS Code or copy text to clipboard first.');
             return;
         }
-        const selection = editor.selection;
-        const selectedText = selection.isEmpty ? editor.document.getText() : editor.document.getText(selection);
-        log.appendLine(`Selection empty: ${selection.isEmpty}, text length: ${selectedText.length}`);
         const apiBase = getConfig().get('apiBase');
         log.appendLine(`API base: ${apiBase}`);
         let apiKey = await context.secrets.get('polaris.apiKey');
@@ -108,32 +157,50 @@ function activate(context) {
                 return;
             }
             log.appendLine(`Got AI response: ${aiResponse.substring(0, 100)}...`);
-            const editSuccess = await editor.edit((editBuilder) => {
-                log.appendLine('Starting edit operation');
-                const mode = getConfig().get('insertMode', 'below');
-                log.appendLine(`Insert mode: ${mode}`);
-                if (mode === 'replace' && !selection.isEmpty) {
-                    log.appendLine('Replacing selection');
-                    editBuilder.replace(selection, aiResponse);
-                }
-                else if (mode === 'replace') {
-                    log.appendLine('Replacing entire document');
-                    const fullRange = new vscode.Range(0, 0, editor.document.lineCount, 0);
-                    editBuilder.replace(fullRange, aiResponse);
+            if (useClipboard) {
+                // Try to replace the selected text directly
+                const replaced = await replaceSystemSelectedText(aiResponse);
+                if (replaced) {
+                    vscode.window.showInformationMessage('Text refined and replaced!');
+                    log.appendLine('Refined text replaced in system');
                 }
                 else {
-                    const line = selection.isEmpty ? selection.active.line : selection.end.line;
-                    log.appendLine(`Inserting at line ${line}`);
-                    const lineEnd = editor.document.lineAt(line).range.end;
-                    editBuilder.insert(lineEnd, `\n${aiResponse}\n`);
+                    // Fallback: put refined text in clipboard
+                    await vscode.env.clipboard.writeText(aiResponse);
+                    vscode.window.showInformationMessage('Text refined and copied to clipboard! Paste it back where you need it.');
+                    log.appendLine('Refined text copied to clipboard');
                 }
-            });
-            if (editSuccess) {
-                log.appendLine('Edit operation successful');
             }
-            else {
-                log.appendLine('Edit operation failed');
-                vscode.window.showErrorMessage('Failed to insert AI response');
+            else if (editor) {
+                // Replace text in editor
+                const selection = editor.selection;
+                const editSuccess = await editor.edit((editBuilder) => {
+                    log.appendLine('Starting edit operation');
+                    const mode = getConfig().get('insertMode', 'below');
+                    log.appendLine(`Insert mode: ${mode}`);
+                    if (mode === 'replace' && !selection.isEmpty) {
+                        log.appendLine('Replacing selection');
+                        editBuilder.replace(selection, aiResponse);
+                    }
+                    else if (mode === 'replace') {
+                        log.appendLine('Replacing entire document');
+                        const fullRange = new vscode.Range(0, 0, editor.document.lineCount, 0);
+                        editBuilder.replace(fullRange, aiResponse);
+                    }
+                    else {
+                        const line = selection.isEmpty ? selection.active.line : selection.end.line;
+                        log.appendLine(`Inserting at line ${line}`);
+                        const lineEnd = editor.document.lineAt(line).range.end;
+                        editBuilder.insert(lineEnd, `\n${aiResponse}\n`);
+                    }
+                });
+                if (editSuccess) {
+                    log.appendLine('Edit operation successful');
+                }
+                else {
+                    log.appendLine('Edit operation failed');
+                    vscode.window.showErrorMessage('Failed to insert AI response');
+                }
             }
         });
     });
@@ -181,7 +248,27 @@ function activate(context) {
         log.appendLine('Test command executed');
         vscode.window.showInformationMessage('Polaris extension is working!');
     });
-    context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, log);
+    /* Test system-wide selection command */
+    const testSystemCmd = vscode.commands.registerCommand('polaris.testSystemSelection', async () => {
+        log.appendLine('Testing system-wide selection...');
+        log.show();
+        try {
+            const selectedText = await getSystemSelectedText();
+            if (selectedText) {
+                vscode.window.showInformationMessage(`System selection works! Got: "${selectedText.substring(0, 100)}..."`);
+                log.appendLine(`System selection successful: "${selectedText}"`);
+            }
+            else {
+                vscode.window.showWarningMessage('No system selection found. Select some text outside VS Code and try again.');
+                log.appendLine('No system selection found');
+            }
+        }
+        catch (error) {
+            vscode.window.showErrorMessage(`System selection failed: ${error}`);
+            log.appendLine(`System selection error: ${error}`);
+        }
+    });
+    context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, testSystemCmd, log);
     console.log('Polaris extension activation complete');
     log.appendLine('Extension setup complete');
 }
@@ -280,5 +367,101 @@ async function aiCall(input, apiBase, apiKey, log) {
         req.write(postData);
         req.end();
     });
+}
+async function getSystemSelectedText() {
+    try {
+        // Method 1: Try to get selected text using accessibility API
+        const accessibilityScript = `
+      tell application "System Events"
+        try
+          set frontApp to first application process whose frontmost is true
+          set selectedText to value of attribute "AXSelectedText" of frontApp
+          return selectedText
+        on error
+          return ""
+        end try
+      end tell
+    `;
+        const { stdout: accessibilityResult } = await execAsync(`osascript -e '${accessibilityScript}'`);
+        if (accessibilityResult.trim()) {
+            return accessibilityResult.trim();
+        }
+        // Method 2: Fallback - safely copy selection without disturbing clipboard
+        const clipboardScript = `
+      tell application "System Events"
+        try
+          -- Save current clipboard
+          set originalClipboard to the clipboard
+          
+          -- Copy current selection
+          keystroke "c" using {command down}
+          delay 0.2
+          
+          -- Get the copied text
+          set selectedText to the clipboard
+          
+          -- Restore original clipboard
+          set the clipboard to originalClipboard
+          
+          return selectedText
+        on error
+          return ""
+        end try
+      end tell
+    `;
+        const { stdout: clipboardResult } = await execAsync(`osascript -e '${clipboardScript}'`);
+        return clipboardResult.trim();
+    }
+    catch (error) {
+        console.log('Failed to get system selected text:', error);
+        return '';
+    }
+}
+async function replaceSystemSelectedText(newText) {
+    try {
+        // Save current clipboard, replace text, restore clipboard
+        // Use a more robust approach by writing the text to a temporary file
+        // Create a temporary file with the new text
+        const tempFile = path.join(os.tmpdir(), `polaris-${Date.now()}.txt`);
+        fs.writeFileSync(tempFile, newText, 'utf8');
+        const replaceScript = `
+      tell application "System Events"
+        try
+          -- Save current clipboard
+          set originalClipboard to the clipboard
+          
+          -- Read new text from file
+          set newText to read POSIX file "${tempFile}" as «class utf8»
+          
+          -- Set new text to clipboard
+          set the clipboard to newText
+          
+          -- Paste the new text
+          keystroke "v" using {command down}
+          delay 0.1
+          
+          -- Restore original clipboard
+          set the clipboard to originalClipboard
+          
+          return "success"
+        on error errMsg
+          return "error: " & errMsg
+        end try
+      end tell
+    `;
+        const { stdout } = await execAsync(`osascript -e '${replaceScript}'`);
+        // Clean up temp file
+        try {
+            fs.unlinkSync(tempFile);
+        }
+        catch (e) {
+            // Ignore cleanup errors
+        }
+        return stdout.trim() === "success";
+    }
+    catch (error) {
+        console.log('Failed to replace system selected text:', error);
+        return false;
+    }
 }
 //# sourceMappingURL=extension.js.map

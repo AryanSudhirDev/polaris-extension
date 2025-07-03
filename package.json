@@ -2,7 +2,7 @@
   "name": "polaris-extension",
   "displayName": "Polaris",
   "description": "AI-powered prompt workflow inside VS Code / Cursor.",
-  "version": "0.0.16",
+  "version": "0.0.20",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"
@@ -10,6 +10,7 @@
   "categories": ["Other"],
   "activationEvents": [
     "onStartupFinished"
+    
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -37,14 +38,16 @@
       {
         "command": "polaris.test",
         "title": "Polaris: Test Extension"
+      },
+      {
+        "command": "polaris.testSystemSelection",
+        "title": "Polaris: Test System-Wide Selection"
       }
     ],
     "keybindings": [
       {
         "command": "polaris.generatePrompt",
-        "key": "ctrl+shift+alt+d",
-        "mac": "shift+alt+cmd+d",
-        "when": "editorTextFocus"
+        "key": "shift+cmd+g"
       }
     ],
     "viewsContainers": {
