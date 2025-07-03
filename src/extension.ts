@@ -335,17 +335,26 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
   const url = new URL(urlString);
   log.appendLine(`POST ${url.toString()}`);
   
+  const systemPrompt = `You are a senior product designer, technical writer, and full-stack architect.
+
+When the user gives you a short idea, transform it into a thorough, actionable spec. Return your answer in markdown with these sections (include only those that make sense):
+
+1. **Refined Summary** – rewrite the original sentence in polished, professional English.
+2. **User Stories / Use-cases** – bullet list in the format "As a <role> I want <goal> so that <why>".
+3. **Feature Breakdown** – numbered list of concrete features.
+4. **Architecture & Tech Recommendations** – high-level stack, libraries, services.
+5. **Development Plan** – phased roadmap with milestones.
+6. **Edge Cases & Risks** – bullets.
+7. **Accessibility & UX Notes** – bullets.
+8. **Example Snippets / Pseudocode** – optional, include only if clarifying.
+
+Be explicit, avoid fluff, maintain the original intent, and provide detailed explanations and stuff to maximize the quality of the output. Detail how to go about building this and use sequential thinking to figure out a proper dev plan and write it all out. the end result should be long but detailed and proper`;
+
   const postData = JSON.stringify({
     model: 'gpt-4o-mini',
     messages: [
-      {
-        role: 'system',
-        content: 'You are a text refinement assistant. Your job is to improve the provided text by making it clearer, more concise, better structured, and more professional while preserving the original meaning and intent. Fix grammar, improve word choice, enhance clarity, and maintain the original tone and style as much as possible. Return only the refined text without any explanations or meta-commentary.'
-      },
-      {
-        role: 'user', 
-        content: input
-      }
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: input }
     ],
   });
 

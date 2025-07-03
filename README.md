@@ -36,6 +36,12 @@ These six components match (and surpass) the existing menu-bar app inside VS Cod
 
 ---
 
+## Roadmap / Next Feature
+
+• **Code-Aware Refinement (planned)** – the extension will soon parse your open workspace (AST + semantic search) to feed contextual snippets into the AI. That way the model can tailor its suggestions to your actual codebase.
+
+This is tracked internally; contributions welcome once core scaffolding lands.
+
 ### Getting Started
 
 The repo is in its infancy—just a roadmap for now. Pull requests welcome once scaffolding lands. 
