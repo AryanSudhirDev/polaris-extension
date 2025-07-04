@@ -1,58 +1,45 @@
-# Polaris VS Code / Cursor Extension
+# Promptr – AI-Powered VS Code Extension
 
-## Core Feature Shortlist (MVP)
+Transform your text with AI right inside VS Code/Cursor. Select text, hit ⌘⇧G, and get instant AI-powered refinements.
 
-1. **Generate-Prompt command**  
-   • Command Palette entry + default hotkey **⌘⇧G**  
-   • Uses current selection *(fallback: whole file)*  
-   • Sends text to your AI API, inserts or replaces with the response
+## Quick Start
+1. Install extension
+2. Hit ⌘⇧G with text selected
+3. Watch your text transform
 
-2. **Temperature Control**  
-   • Status bar item `Polaris 🔥 0.3` shows current temperature setting  
-   • Click to adjust from 0.0 (focused) to 1.0 (creative)  
-   • Also accessible via Command Palette: "Polaris: Set Temperature"
+## Features
+- One-click text transformation with AI
+- Smart temperature control (0.0 = focused, 1.0 = creative)
+- Seamless VS Code integration
+- No API key needed - works out of the box
 
-3. **Prompt Library side-panel**  
-   • Tree view listing saved prompts  
-   • Click to insert; context-menu: edit / delete  
-   • Search box at top
+## Settings
+* `promptr.temperature` - Adjust AI creativity (0.0-1.0)
+* `promptr.apiBase` - Custom API endpoint (default: OpenAI)
 
-4. **Prompt Editor webview**  
-   • Rich form to create/update a prompt *(name, body, tags)*  
-   • **Save** → updates side-panel list
+## Hotkeys
+* Generate AI Response: `⌘⇧G` (Mac) / `Ctrl+Shift+G` (Windows/Linux)
+* Temperature: Click 🔥 in status bar
 
-5. **Account / Auth (Clerk)**  
-   • Sign-in/out button in side-panel header  
-   • After login, prompts sync from backend *(JWT stored in secrets)*  
-   • Offline fallback to local storage
+## ⌨️ Core Commands
+| Command Palette label | Default hot-key |
+| --- | --- |
+| Promptr: Generate Prompt | `⌘⇧G` |
+| Promptr: Quick Insert Prompt | – |
+| Promptr: Set Temperature | – |
+| Promptr: Menu (status-bar) | click `Promptr 🔥` |
 
-6. **Settings**  
-   • `polaris.apiBase` *(URL)*  
-   • `polaris.insertMode` *("replace" | "below")*  
-   • `polaris.hotkey` *(overrides default)*
-   • `polaris.temperature` *(0.0 - 1.0, default: 0.3)*
+## ⚙️ Settings (`File → Preferences → Settings` → search *promptr*)
+* `promptr.apiBase` – Override the API endpoint (default `https://api.openai.com`).
+* `promptr.temperature` – 0.0 (focused) → 1.0 (creative). Also accessible via status-bar.
+* `promptr.insertMode` – `replace` / `below` (where to put AI output).
+* `promptr.hotkey` – Custom hot-key for Generate Prompt.
+* `promptr.customContext` – Extra project context that is always sent to the model.
 
-7. **Quick-Prompt picker**  
-   • Command **"Polaris: Quick Insert Prompt"** opens a QuickPick list  
-   • Choose prompt → insert immediately
-
-8. **Codebase Analysis**  
-   • Automatically analyzes your workspace (languages, frameworks, dependencies)  
-   • Provides contextual AI responses tailored to your tech stack  
-   • Cached for 30 seconds for performance
-
----
-
-These features provide a comprehensive AI-powered development workflow inside VS Code/Cursor.
+## 💡 Tips
+• Use the **Prompt Library** side panel to save reusable prompts.
+• The extension auto-analyzes your workspace (languages, frameworks) and feeds that into the prompt – responses are aware of your tech stack.
+• API key is stored with VS Code Secret Storage; you can clear it via **Promptr: Menu → Edit Custom Context → leave blank** then confirm.
 
 ---
-
-## Roadmap / Next Feature
-
-• **Enhanced Code-Aware Refinement** – deeper AST parsing and semantic search for even more contextual AI suggestions based on your specific codebase patterns.
-
-This is tracked internally; contributions welcome.
-
-### Getting Started
-
-Install the extension and configure your OpenAI API key. The extension will automatically analyze your codebase and provide intelligent, context-aware AI assistance. 
+Happy prompting! ✨ 

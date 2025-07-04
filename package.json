@@ -1,8 +1,8 @@
 {
-  "name": "polaris-extension",
-  "displayName": "Polaris",
-  "description": "AI-powered prompt workflow inside VS Code / Cursor.",
-  "version": "1.1.0",
+  "name": "promptr",
+  "displayName": "Promptr",
+  "description": "Transform text with AI inside VS Code. Select, hit ⌘⇧G, and watch your text transform.",
+  "version": "1.1.4",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"
@@ -17,86 +17,62 @@
   "contributes": {
     "commands": [
       {
-        "command": "polaris.generatePrompt",
-        "title": "Polaris: Generate Prompt"
+        "command": "promptr.generatePrompt",
+        "title": "Promptr: Generate Prompt"
       },
       {
-        "command": "polaris.quickInsertPrompt",
-        "title": "Polaris: Quick Insert Prompt"
+        "command": "promptr.quickInsertPrompt",
+        "title": "Promptr: Quick Insert Prompt"
       },
       {
-        "command": "polaris.openPromptEditor",
-        "title": "Polaris: New Prompt"
+        "command": "promptr.openPromptEditor",
+        "title": "Promptr: New Prompt"
       },
       {
-        "command": "polaris.account.signIn",
-        "title": "Polaris: Sign In"
+        "command": "promptr.setTemperature",
+        "title": "Promptr: Set Temperature"
       },
       {
-        "command": "polaris.account.signOut",
-        "title": "Polaris: Sign Out"
+        "command": "promptr.setCustomContext",
+        "title": "Promptr: Set Custom Context"
       },
       {
-        "command": "polaris.test",
-        "title": "Polaris: Test Extension"
-      },
-      {
-        "command": "polaris.testCodebase",
-        "title": "Polaris: Test Codebase Analysis"
-      },
-      {
-        "command": "polaris.showDebug",
-        "title": "Polaris: Show Debug Output"
-      },
-      {
-        "command": "polaris.testSystemSelection",
-        "title": "Polaris: Test System-Wide Selection"
-      },
-      {
-        "command": "polaris.setTemperature",
-        "title": "Polaris: Set Temperature"
-      },
-      {
-        "command": "polaris.setCustomContext",
-        "title": "Polaris: Set Custom Context"
-      },
-      {
-        "command": "polaris.showMenu",
-        "title": "Polaris: Menu"
+        "command": "promptr.showMenu",
+        "title": "Promptr: Menu"
       }
     ],
     "keybindings": [
       {
-        "command": "polaris.generatePrompt",
+        "command": "promptr.generatePrompt",
         "key": "shift+cmd+g"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "polaris",
-          "title": "Polaris"
+          "id": "promptr",
+          "title": "Promptr"
         }
       ]
     },
     "views": {
-      "polaris": [
+      "promptr": [
         {
-          "id": "polarisPromptLibrary",
+          "id": "promptrPromptLibrary",
           "name": "Prompt Library"
         }
       ]
     },
     "configuration": {
       "type": "object",
-      "title": "Polaris Settings",
+      "title": "Promptr Settings",
       "properties": {
-        "polaris.apiBase": {
+        "promptr.apiBase": {
           "type": "string",
           "default": "https://api.openai.com",
-          "description": "Base URL for Polaris API"
+          "description": "Base URL for OpenAI API"
         },
-        "polaris.insertMode": {
+        "promptr.insertMode": {
           "type": "string",
           "enum": [
             "replace",
@@ -105,19 +81,19 @@
           "default": "below",
           "description": "Where to insert AI output"
         },
-        "polaris.hotkey": {
+        "promptr.hotkey": {
           "type": "string",
           "default": "shift+alt+cmd+d",
           "description": "Override default hotkey for Generate Prompt"
         },
-        "polaris.temperature": {
+        "promptr.temperature": {
           "type": "number",
           "minimum": 0,
           "maximum": 1,
           "default": 0.3,
           "description": "Temperature for AI model (0 = deterministic, 1 = very random)"
         },
-        "polaris.customContext": {
+        "promptr.customContext": {
           "type": "string",
           "default": "",
           "description": "Additional context to include in every AI prompt (e.g., project description, coding guidelines)"
@@ -127,14 +103,28 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "compile": "webpack --mode production",
+    "watch": "webpack --mode development --watch",
     "package": "vsce package"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "needle": "^3.2.0"
   },
   "devDependencies": {
     "@types/node": "^18",
     "@types/vscode": "^1.86",
     "typescript": "^5.3.3",
-    "vsce": "^2.15.0"
+    "vsce": "^2.15.0",
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4",
+    "ts-loader": "^9.5.1"
+  },
+  "icon": "images/promptr-icon.png",
+  "galleryBanner": {
+    "color": "#7B5BFF",
+    "theme": "dark"
   }
 }

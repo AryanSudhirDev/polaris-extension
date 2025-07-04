@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import * as https from 'https';
+// Dynamically load environment variables from a local .env (if present)
+// Avoids adding a build-time dependency on @types/dotenv
+require('dotenv').config();
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { writeFileSync, unlinkSync } from 'fs';
@@ -134,12 +137,12 @@ async function getCodebaseContext(log: vscode.OutputChannel): Promise<CodebaseCo
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Polaris extension starting...');
+  const EXT_NAMESPACE = 'promptr';
   
-  const getConfig = () => vscode.workspace.getConfiguration('polaris');
+  const getConfig = () => vscode.workspace.getConfiguration(EXT_NAMESPACE);
 
   // Create output channel but don't show it automatically
-  const log = vscode.window.createOutputChannel('Polaris');
+  const log = vscode.window.createOutputChannel('Promptr');
   
   /*
    * Get selected text from VS Code/Cursor chat interface (cross-platform)
@@ -175,7 +178,7 @@ export function activate(context: vscode.ExtensionContext) {
    * Cross-platform text selection (works on Windows, Mac, Linux)
    */
   async function getSelectedTextCrossPlatform(log: vscode.OutputChannel): Promise<string | null> {
-    log.appendLine('=== POLARIS CROSS-PLATFORM TEXT RETRIEVAL ===');
+    log.appendLine('=== PROMPTR CROSS-PLATFORM TEXT RETRIEVAL ===');
     
     // Method 1: Try to get from VS Code editor selection first
     const editor = vscode.window.activeTextEditor;
@@ -212,8 +215,8 @@ export function activate(context: vscode.ExtensionContext) {
   /*
    * Main command: Generate and refine prompt
    */
-  const generatePromptCmd = vscode.commands.registerCommand('polaris.generatePrompt', async () => {
-    log.appendLine('=== Polaris Generate Prompt Command Started ===');
+  const generatePromptCmd = vscode.commands.registerCommand('promptr.generatePrompt', async () => {
+    log.appendLine('=== Promptr Generate Prompt Command Started ===');
     
     const editor = vscode.window.activeTextEditor;
     let selectedText = '';
@@ -256,28 +259,16 @@ export function activate(context: vscode.ExtensionContext) {
     log.appendLine(`   Length: ${selectedText.length} characters`);
     log.appendLine(`   Preview: "${selectedText.substring(0, 100)}..."`);
 
-    // Get API configuration
-    const apiBase = getConfig().get<string>('apiBase');
+    // Get API configuration - use proxy server
+    const apiBase = getConfig().get<string>('apiBase', 'https://api.openai.com');
     log.appendLine(`API base: ${apiBase}`);
-    let apiKey = await context.secrets.get('polaris.apiKey');
     
-    // Fallback to environment variable if no stored key
-    if (!apiKey) {
-      apiKey = process.env.OPENAI_API_KEY || process.env.POLARIS_API_KEY;
-      if (apiKey) {
-        log.appendLine('Using API key from environment variable');
-      }
-    }
-    
-    // Temporary fallback for testing
-    if (!apiKey) {
-      apiKey = "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";
-      log.appendLine('Using hardcoded API key for testing');
-    }
+    // Use embedded API key
+    const apiKey = process.env.PROMPTR_MASTER_KEY;
     
     if (!apiKey) {
-      log.appendLine('No API key found');
-      vscode.window.showWarningMessage('API key not set. Run "Polaris: Sign In" or set OPENAI_API_KEY environment variable.');
+      vscode.window.showErrorMessage('Promptr: Service temporarily unavailable. Please try again later.');
+      log.appendLine('No API key available in build-time environment');
       return;
     }
     
@@ -286,14 +277,14 @@ export function activate(context: vscode.ExtensionContext) {
     // Show progress without stealing focus
     await vscode.window.withProgress({ 
       location: vscode.ProgressLocation.Notification, 
-      title: 'Polaris: Generating…',
+      title: 'Promptr: Generating…',
       cancellable: false
     }, async () => {
       log.appendLine(`Sending ${selectedText.length} chars to AI`);
       let aiResponse: string;
       
       try {
-        aiResponse = await aiCall(selectedText, apiBase, apiKey!, log);
+        aiResponse = await aiCall(selectedText, apiBase, apiKey as string, log);
       } catch (err: any) {
         log.appendLine(`AI call failed: ${err?.message ?? err}`);
         vscode.window.showErrorMessage(err.message || 'AI request failed');
@@ -326,7 +317,7 @@ export function activate(context: vscode.ExtensionContext) {
           editor.selection = newSelection;
           
           // Show success message in status bar instead of popup
-          vscode.window.showInformationMessage('Polaris: Refined text ready (copied to clipboard)!', { modal: false });
+          vscode.window.showInformationMessage('Promptr: Refined text ready (copied to clipboard)!', { modal: false });
           log.appendLine('Text replaced, re-selected, and copied to clipboard');
         } else {
           log.appendLine('Edit operation failed');
@@ -335,7 +326,7 @@ export function activate(context: vscode.ExtensionContext) {
       } else {
         // No editor context – automatically paste into the front-most app
         await autoPaste(aiResponse, log);
-        vscode.window.showInformationMessage('Polaris: Refined text ready (copied to clipboard)!', { modal: false });
+        vscode.window.showInformationMessage('Promptr: Refined text ready (copied to clipboard)!', { modal: false });
         log.appendLine('Refined text auto-pasted and copied to clipboard');
       }
     });
@@ -344,7 +335,7 @@ export function activate(context: vscode.ExtensionContext) {
   /*
    * Quick-Prompt picker – inserts a saved prompt body immediately.
    */
-  const quickInsertCmd = vscode.commands.registerCommand('polaris.quickInsertPrompt', async () => {
+  const quickInsertCmd = vscode.commands.registerCommand('promptr.quickInsertPrompt', async () => {
     const prompts: Prompt[] = context.globalState.get('prompts', []);
     if (!prompts.length) {
       vscode.window.showInformationMessage('No prompts saved yet.');
@@ -366,87 +357,29 @@ export function activate(context: vscode.ExtensionContext) {
    * Prompt Library tree view (read-only for now)
    */
   const promptProvider = new PromptTreeProvider(context);
-  vscode.window.registerTreeDataProvider('polarisPromptLibrary', promptProvider);
-
-  /* Sign In: prompt for API key and save to secret storage */
-  const signInCmd = vscode.commands.registerCommand('polaris.account.signIn', async () => {
-    const key = await vscode.window.showInputBox({
-      prompt: 'Enter Polaris / OpenAI API Key',
-      ignoreFocusOut: true,
-      password: true,
-    });
-    if (key) {
-      await context.secrets.store('polaris.apiKey', key);
-      vscode.window.showInformationMessage('API key saved.');
-    }
-  });
-
-  /* Sign Out: delete stored key */
-  const signOutCmd = vscode.commands.registerCommand('polaris.account.signOut', async () => {
-    await context.secrets.delete('polaris.apiKey');
-    vscode.window.showInformationMessage('Signed out from Polaris API.');
-  });
-
-  /* Debug command to show output channel */
-  const showDebugCmd = vscode.commands.registerCommand('polaris.showDebug', () => {
-    log.show(true);
-    vscode.window.showInformationMessage('Debug output shown. Run a Polaris command to see logs.');
-  });
-
-  /* Test command to verify extension is working */
-  const testCmd = vscode.commands.registerCommand('polaris.test', async () => {
-    log.appendLine('Test command executed');
-    vscode.window.showInformationMessage('Polaris extension is working!');
-  });
-
-  /* Test codebase analysis command */
-  const testCodebaseCmd = vscode.commands.registerCommand('polaris.testCodebase', async () => {
-    log.show(true); // Show output panel
-    log.appendLine('=== CODEBASE ANALYSIS TEST ===');
-    
-    const context = await analyzeCodebase(log);
-    
-    // Display in both log and popup
-    const summary = `
-📁 Project Type: ${context.projectType}
-🔤 Languages: ${context.languages.join(', ') || 'None detected'}
-⚛️ Frameworks: ${context.frameworks.join(', ') || 'None detected'}
-📦 Dependencies: ${context.dependencies.slice(0, 5).join(', ')}${context.dependencies.length > 5 ? '...' : ''}
-📂 Structure: ${context.fileStructure.join(', ') || 'Standard layout'}
-    `.trim();
-    
-    log.appendLine(summary);
-    vscode.window.showInformationMessage(
-      `Codebase Analysis Complete!\nCheck Output → Polaris for details.`,
-      'Open Output'
-    ).then(action => {
-      if (action === 'Open Output') {
-        log.show(true);
-      }
-    });
-  });
+  vscode.window.registerTreeDataProvider('promptrPromptLibrary', promptProvider);
 
   /* ----------------- Temperature Status Bar ----------------- */
   const temperatureStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
 
   function refreshTemperatureStatus() {
     const temp = getConfig().get<number>('temperature', 0.3);
-    temperatureStatus.text = `Polaris $(flame) ${temp}`;
-    temperatureStatus.tooltip = 'Polaris options';
-    temperatureStatus.command = 'polaris.showMenu';
+    temperatureStatus.text = `Promptr 🔥 ${temp.toFixed(1)}`;
+    temperatureStatus.tooltip = 'Promptr options';
+    temperatureStatus.command = 'promptr.showMenu';
     temperatureStatus.show();
   }
 
   refreshTemperatureStatus();
 
-  /* -------------- Command: Polaris Menu --------------- */
-  const showMenuCmd = vscode.commands.registerCommand('polaris.showMenu', async () => {
+  /* -------------- Command: Promptr Menu --------------- */
+  const showMenuCmd = vscode.commands.registerCommand('promptr.showMenu', async () => {
     const pick = await vscode.window.showQuickPick(
       [
         { label: '$(flame) Set Temperature', action: 'temperature' },
         { label: '$(pencil) Edit Custom Context', action: 'context' }
       ],
-      { placeHolder: 'Polaris Options' }
+      { placeHolder: 'Promptr Options' }
     );
 
     if (!pick) {
@@ -454,19 +387,19 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     if (pick.action === 'temperature') {
-      vscode.commands.executeCommand('polaris.setTemperature');
+      vscode.commands.executeCommand('promptr.setTemperature');
     } else if (pick.action === 'context') {
-      vscode.commands.executeCommand('polaris.setCustomContext');
+      vscode.commands.executeCommand('promptr.setCustomContext');
     }
   });
 
   /* ------------ Command: Set Custom Context ----------- */
-  const setCustomContextCmd = vscode.commands.registerCommand('polaris.setCustomContext', async () => {
+  const setCustomContextCmd = vscode.commands.registerCommand('promptr.setCustomContext', async () => {
     const current = getConfig().get<string>('customContext', '');
     const input = await vscode.window.showInputBox({
       value: current,
       prompt: 'Enter additional project context to include in AI prompts (leave blank to clear)',
-      placeHolder: 'e.g., Clean Architecture, migrating to Vue 3, security-first approach',
+      placeHolder: 'e.g., Im building an iOS app with SwiftUI and it is a health and fitness app',
       ignoreFocusOut: true
     });
 
@@ -475,7 +408,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     await getConfig().update('customContext', input.trim(), vscode.ConfigurationTarget.Workspace);
-    vscode.window.showInformationMessage('Polaris: Custom context updated');
+    vscode.window.showInformationMessage('Promptr: Custom context updated');
   });
 
   context.subscriptions.push(temperatureStatus);
@@ -483,14 +416,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('polaris.temperature')) {
+      if (e.affectsConfiguration('promptr.temperature')) {
         refreshTemperatureStatus();
       }
     })
   );
 
   /* ---------------- Command: Set Temperature --------------- */
-  const setTemperatureCmd = vscode.commands.registerCommand('polaris.setTemperature', async () => {
+  const setTemperatureCmd = vscode.commands.registerCommand('promptr.setTemperature', async () => {
     const current = getConfig().get<number>('temperature', 0.3);
     const values = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].map((v) => ({
       label: v.toString(),
@@ -508,8 +441,7 @@ export function activate(context: vscode.ExtensionContext) {
     refreshTemperatureStatus();
   });
 
-  context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, signInCmd, signOutCmd, testCmd, testCodebaseCmd, showDebugCmd, log);
-  console.log('Polaris extension activation complete');
+  context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, log);
   log.appendLine('Extension setup complete');
 }
 
@@ -527,7 +459,7 @@ interface Prompt {
 class PromptItem extends vscode.TreeItem {
   constructor(public readonly prompt: Prompt) {
     super(prompt.name, vscode.TreeItemCollapsibleState.None);
-    this.contextValue = 'polarisPrompt';
+    this.contextValue = 'promptrPrompt';
     this.description = prompt.tags?.join(', ');
   }
 
@@ -538,7 +470,7 @@ class PromptItem extends vscode.TreeItem {
   }
 
   edit() {
-    vscode.commands.executeCommand('polaris.openPromptEditor', this.prompt);
+    vscode.commands.executeCommand('promptr.openPromptEditor', this.prompt);
   }
 }
 
@@ -567,6 +499,7 @@ class PromptTreeProvider implements vscode.TreeDataProvider<PromptItem>, vscode.
 }
 
 async function aiCall(input: string, apiBase: string | undefined, apiKey: string, log: vscode.OutputChannel): Promise<string> {
+  // Use OpenAI API directly with build-time embedded key
   const urlString = apiBase ? `${apiBase.replace(/\/$/, '')}/v1/chat/completions` : 'https://api.openai.com/v1/chat/completions';
   const url = new URL(urlString);
   log.appendLine(`POST ${url.toString()}`);
@@ -574,25 +507,27 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
   // Analyze codebase for context
   const codebaseContext = await getCodebaseContext(log);
   
-  // Build enhanced system prompt
-  let contextualPrompt = `You are a **senior product designer**, **technical writer**, and **full-stack architect** with 10+ years of experience in enterprise software development. Your expertise lies in transforming high-level concepts into comprehensive, actionable technical specifications.`;
+  // Retrieve the user-provided custom context and place it FIRST in the system prompt so GPT processes it with maximum weight
+  const userContext = vscode.workspace.getConfiguration('promptr').get<string>('customContext', '').trim();
+
+  // Build enhanced system prompt starting with the custom context (if any)
+  let contextualPrompt = '';
+  if (userContext) {
+    contextualPrompt += `### USER-PROVIDED CONTEXT ###\n${userContext}\n\n`;
+  }
+
+  contextualPrompt += `You are a **senior product designer**, **technical writer**, and **full-stack architect** with 10+ years of experience in enterprise software development. Your expertise lies in transforming high-level concepts into comprehensive, actionable technical specifications.`;
 
   // Append codebase context if available
   if (codebaseContext.projectType !== 'unknown' || codebaseContext.languages.length > 0 || codebaseContext.frameworks.length > 0 || codebaseContext.dependencies.length > 0) {
     contextualPrompt += `\n\n### CODEBASE CONTEXT ###\n**Project Type:** ${codebaseContext.projectType}\n**Languages:** ${codebaseContext.languages.join(', ') || 'Not detected'}\n**Frameworks:** ${codebaseContext.frameworks.join(', ') || 'None detected'}\n**Key Dependencies:** ${codebaseContext.dependencies.slice(0, 8).join(', ')}\n**Structure:** ${codebaseContext.fileStructure.join(', ') || 'Standard layout'}\n\n**INTEGRATION DIRECTIVE:** Leverage this technical context to ensure all recommendations align with the existing tech stack and project architecture. Prioritize solutions that integrate seamlessly with current ${codebaseContext.frameworks.length > 0 ? codebaseContext.frameworks.join('/') : 'technology stack'}.`;
   }
 
-  const userContext = vscode.workspace.getConfiguration('polaris').get<string>('customContext', '').trim();
-
-  if (userContext) {
-    contextualPrompt += `\n\n### USER-PROVIDED CONTEXT ###\n${userContext}`;
-  }
-
   contextualPrompt += `\n\n### CORE OBJECTIVE ###\nTransform brief user ideas into comprehensive, production-ready technical specifications that serve as definitive blueprints for development teams.\n\n### REASONING METHODOLOGY ###\nApply step-by-step analysis: (1) Parse user intent and constraints, (2) Identify technical requirements and dependencies, (3) Structure comprehensive specification, (4) Validate against best practices.\n\n### OUTPUT STRUCTURE ###\nGenerate your response using **only** the following sections that are relevant to the user's request. Use clear markdown formatting with proper hierarchical headers:\n\n#### **1. REFINED SUMMARY**\n- Rewrite the original concept in professional, precise language\n- Clarify scope, objectives, and success metrics\n- Maximum 2-3 sentences, focus on core value proposition\n\n#### **2. USER STORIES & USE CASES**\n- Format: "As a [specific role], I want [specific goal] so that [clear benefit/outcome]"\n- Prioritize by impact and feasibility\n- Include edge cases and error scenarios\n\n#### **3. FEATURE BREAKDOWN**\n- Enumerate concrete, measurable features\n- Organize by priority (MVP vs. future releases)\n- Include technical acceptance criteria for each feature\n\n#### **4. ARCHITECTURE & TECHNICAL RECOMMENDATIONS**\n- Specify recommended tech stack with rationale\n- Include integration patterns, data flow, and system boundaries\n- Address scalability, security, and maintainability concerns\n${codebaseContext.frameworks.length > 0 ? `- **INTEGRATION PRIORITY:** Detail how to integrate with existing ${codebaseContext.frameworks.join('/')} infrastructure` : ''}\n\n#### **5. DEVELOPMENT ROADMAP**\n- Phase-based delivery plan with clear milestones\n- Resource requirements and timeline estimates\n- Risk mitigation strategies for each phase\n\n#### **6. RISK ASSESSMENT & MITIGATION**\n- Technical risks (performance, security, compatibility)\n- Business risks (market fit, resource constraints)\n- Mitigation strategies with contingency plans\n\n#### **7. ACCESSIBILITY & USER EXPERIENCE**\n- WCAG compliance requirements\n- Cross-platform compatibility considerations\n- Performance optimization strategies\n\n### CONSTRAINTS & QUALITY STANDARDS ###\n- **Specificity:** Provide concrete, implementable details\n- **Clarity:** Use precise technical language without jargon\n- **Completeness:** Address all aspects of the request\n- **Actionability:** Every recommendation must be executable\n- **No Commentary:** Exclude meta-explanations or process descriptions\n\n### EXAMPLES FOR GUIDANCE ###\n"""\nInput: "Build a task management app"\nOutput: Comprehensive spec covering user authentication, task CRUD operations, real-time collaboration, notification systems, etc.\n\nInput: "Create a data visualization dashboard"\nOutput: Detailed spec including data sources, chart types, filtering capabilities, export functions, responsive design, etc.\n"""\n\n**EXECUTE IMMEDIATELY:** Process the user's input and generate the structured specification following the exact format above. Begin with the most relevant section based on the input complexity.`;
-
+  
   const postData = JSON.stringify({
     model: 'gpt-3.5-turbo-0125',
-    temperature: vscode.workspace.getConfiguration('polaris').get<number>('temperature', 0.3),
+    temperature: vscode.workspace.getConfiguration('promptr').get<number>('temperature', 0.3),
     max_tokens: 500,
     messages: [
       { role: 'system', content: contextualPrompt },
