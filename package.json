@@ -2,7 +2,7 @@
   "name": "promptr",
   "displayName": "Promptr",
   "description": "Transform text with AI inside VS Code. Select, hit ⌘⇧G, and watch your text transform.",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"
@@ -44,7 +44,8 @@
     "keybindings": [
       {
         "command": "promptr.generatePrompt",
-        "key": "shift+cmd+g"
+        "key": "shift+ctrl+g",
+        "mac": "shift+cmd+g"
       }
     ],
     "viewsContainers": {

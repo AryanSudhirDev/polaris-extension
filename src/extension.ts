@@ -148,6 +148,9 @@ export function activate(context: vscode.ExtensionContext) {
    * Get selected text from VS Code/Cursor chat interface (cross-platform)
    */
   async function getChatSelectedText(log: vscode.OutputChannel): Promise<string | null> {
+    // First, try to automatically copy whatever text is selected in the focused UI
+    await autoCopy(log);
+
     try {
       log.appendLine('🔍 Looking for selected text in chat interface...');
       
@@ -171,6 +174,43 @@ export function activate(context: vscode.ExtensionContext) {
     } catch (error) {
       log.appendLine(`❌ Error reading chat selected text: ${error}`);
       return null;
+    }
+  }
+
+  /**
+   * Tries to trigger the system copy shortcut (Cmd+C / Ctrl+C) so that
+   * webviews or external UI elements place their current selection on
+   * the clipboard. Mirrors the strategy used by autoPaste.
+   */
+  async function autoCopy(log: vscode.OutputChannel): Promise<void> {
+    try {
+      let copySuccessful = false;
+
+      if (process.platform === 'darwin') {
+        try {
+          const { stdout, stderr } = await execAsync(`osascript -e 'tell application "System Events" to keystroke "c" using {command down}'`);
+          log.appendLine(`⌘C via osascript. stdout: ${stdout.trim()} stderr: ${stderr.trim()}`);
+          copySuccessful = true;
+        } catch { /* ignore */ }
+      } else if (process.platform === 'win32') {
+        try {
+          await execAsync(`powershell -command "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^c')"`);
+          log.appendLine('Ctrl+C sent via PowerShell');
+          copySuccessful = true;
+        } catch { /* ignore */ }
+      } else {
+        try {
+          await execAsync(`xdotool key --clearmodifiers ctrl+c`);
+          log.appendLine('Ctrl+C sent via xdotool');
+          copySuccessful = true;
+        } catch { /* ignore */ }
+      }
+
+      if (!copySuccessful) {
+        log.appendLine('⚠️ autoCopy failed (no suitable method) – relying on existing clipboard content');
+      }
+    } catch (err: any) {
+      log.appendLine(`❌ autoCopy error: ${err.message || err}`);
     }
   }
 
