@@ -150,6 +150,8 @@ export function activate(context: vscode.ExtensionContext) {
   async function getChatSelectedText(log: vscode.OutputChannel): Promise<string | null> {
     // First, try to automatically copy whatever text is selected in the focused UI
     await autoCopy(log);
+    // Give the OS clipboard a moment to update (especially on Windows PowerShell)
+    await new Promise((r)=>setTimeout(r,150));
 
     try {
       log.appendLine('🔍 Looking for selected text in chat interface...');
