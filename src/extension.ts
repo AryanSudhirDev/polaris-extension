@@ -194,27 +194,51 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
+      // Snapshot clipboard before attempting copy so we can verify it updates
+      const beforeClip = await vscode.env.clipboard.readText();
+
+      let copyKeystrokeSent = false;
       let copySuccessful = false;
 
       if (process.platform === 'win32') {
         try {
-          await execAsync(`powershell -command "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^c')"`);
+          await execAsync(`powershell -command \"$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^c')\"`);
           log.appendLine('Ctrl+C sent via PowerShell');
-          copySuccessful = true;
+          copyKeystrokeSent = true;
         } catch { /* ignore */ }
       } else if (process.platform === 'linux') {
         try {
           await execAsync(`xdotool key --clearmodifiers ctrl+c`);
           log.appendLine('Ctrl+C sent via xdotool');
-          copySuccessful = true;
+          copyKeystrokeSent = true;
+        } catch { /* ignore */ }
+      } else if (process.platform === 'darwin') {
+        // macOS: use AppleScript via osascript to simulate ⌘C for non-editor selections
+        try {
+          await execAsync(`osascript -e 'tell application "System Events" to keystroke "c" using {command down}'`);
+          log.appendLine('⌘C keystroke sent via osascript');
+          copyKeystrokeSent = true;
         } catch { /* ignore */ }
       } else {
-        // macOS non-editor selection – skipping osascript to avoid Terminal pop-up
-        log.appendLine('⚠️ Skipping autoCopy on macOS for non-editor context to avoid Terminal focus');
+        log.appendLine('⚠️ autoCopy: Unsupported platform for non-editor selection');
+      }
+
+      // If a keystroke was sent, poll clipboard for up to 500 ms (10×50 ms) to confirm update
+      if (copyKeystrokeSent) {
+        for (let i = 0; i < 10; i++) {
+          await new Promise(r => setTimeout(r, 50));
+          const nowClip = await vscode.env.clipboard.readText();
+          if (nowClip && nowClip !== beforeClip) {
+            copySuccessful = true;
+            break;
+          }
+        }
       }
 
       if (!copySuccessful) {
-        log.appendLine('⚠️ autoCopy failed (no suitable method) – relying on existing clipboard content');
+        log.appendLine('⚠️ autoCopy failed (clipboard unchanged) – relying on existing clipboard content');
+      } else {
+        log.appendLine('✅ autoCopy succeeded (clipboard updated)');
       }
     } catch (err: any) {
       log.appendLine(`❌ autoCopy error: ${err.message || err}`);
@@ -266,7 +290,7 @@ export function activate(context: vscode.ExtensionContext) {
     log.appendLine('=== Promptr Generate Prompt Command Started ===');
     
     const editor = vscode.window.activeTextEditor;
-    let selectedText = await getSelectedText(log);
+    let selectedText = '';
     let originalSelection: vscode.Selection | undefined;
     let textSource = 'unknown';
     
