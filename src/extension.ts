@@ -266,7 +266,7 @@ export function activate(context: vscode.ExtensionContext) {
     log.appendLine('=== Promptr Generate Prompt Command Started ===');
     
     const editor = vscode.window.activeTextEditor;
-    let selectedText = '';
+    let selectedText = await getSelectedText(log);
     let originalSelection: vscode.Selection | undefined;
     let textSource = 'unknown';
     
@@ -295,8 +295,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
     
     if (!selectedText) {
-      log.appendLine('💥 NO TEXT FOUND from any source');
-      vscode.window.showErrorMessage('No text found. Please select text or copy text to clipboard first.');
+      log.appendLine('💥 NO TEXT FOUND');
+      vscode.window.showErrorMessage('Please select some text first.');
       return;
     }
 
@@ -487,6 +487,27 @@ export function activate(context: vscode.ExtensionContext) {
     await getConfig().update('temperature', parseFloat(pick.label), vscode.ConfigurationTarget.Global);
     refreshTemperatureStatus();
   });
+
+  // Retrieve selected text: tries editor first, otherwise auto-copies and falls back to clipboard
+  async function getSelectedText(log: vscode.OutputChannel): Promise<string> {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && !editor.selection.isEmpty) {
+      const txt = editor.document.getText(editor.selection);
+      if (txt.trim()) {
+        log.appendLine(`✅ Editor selection: "${txt.substring(0,50)}..."`);
+        return txt;
+      }
+    }
+
+    await autoCopy(log);
+    await new Promise(r=>setTimeout(r,150));
+    const clip = await vscode.env.clipboard.readText();
+    if (clip.trim()) {
+      log.appendLine(`✅ Clipboard fallback: "${clip.substring(0,50)}..."`);
+      return clip;
+    }
+    return '';
+  }
 
   context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, log);
   log.appendLine('Extension setup complete');
