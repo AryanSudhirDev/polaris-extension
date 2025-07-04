@@ -184,26 +184,31 @@ export function activate(context: vscode.ExtensionContext) {
    */
   async function autoCopy(log: vscode.OutputChannel): Promise<void> {
     try {
+      // If we have an active editor selection, just invoke VS Code's built-in copy – avoids any OS pop-ups.
+      const editor = vscode.window.activeTextEditor;
+      if (editor && !editor.selection.isEmpty) {
+        await vscode.commands.executeCommand('editor.action.clipboardCopyAction');
+        log.appendLine('✅ Copied selection via VS Code command');
+        return;
+      }
+
       let copySuccessful = false;
 
-      if (process.platform === 'darwin') {
-        try {
-          const { stdout, stderr } = await execAsync(`osascript -e 'tell application "System Events" to keystroke "c" using {command down}'`);
-          log.appendLine(`⌘C via osascript. stdout: ${stdout.trim()} stderr: ${stderr.trim()}`);
-          copySuccessful = true;
-        } catch { /* ignore */ }
-      } else if (process.platform === 'win32') {
+      if (process.platform === 'win32') {
         try {
           await execAsync(`powershell -command "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('^c')"`);
           log.appendLine('Ctrl+C sent via PowerShell');
           copySuccessful = true;
         } catch { /* ignore */ }
-      } else {
+      } else if (process.platform === 'linux') {
         try {
           await execAsync(`xdotool key --clearmodifiers ctrl+c`);
           log.appendLine('Ctrl+C sent via xdotool');
           copySuccessful = true;
         } catch { /* ignore */ }
+      } else {
+        // macOS non-editor selection – skipping osascript to avoid Terminal pop-up
+        log.appendLine('⚠️ Skipping autoCopy on macOS for non-editor context to avoid Terminal focus');
       }
 
       if (!copySuccessful) {
