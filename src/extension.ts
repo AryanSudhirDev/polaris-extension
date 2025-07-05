@@ -223,10 +223,10 @@ export function activate(context: vscode.ExtensionContext) {
         log.appendLine('⚠️ autoCopy: Unsupported platform for non-editor selection');
       }
 
-      // If a keystroke was sent, poll clipboard for up to 500 ms (10×50 ms) to confirm update
+      // If a keystroke was sent, poll clipboard for ~50 ms (5×10 ms) to confirm update
       if (copyKeystrokeSent) {
-        for (let i = 0; i < 10; i++) {
-          await new Promise(r => setTimeout(r, 50));
+        for (let i = 0; i < 5; i++) {
+          await new Promise(r => setTimeout(r, 10));
           const nowClip = await vscode.env.clipboard.readText();
           if (nowClip && nowClip !== beforeClip) {
             copySuccessful = true;
