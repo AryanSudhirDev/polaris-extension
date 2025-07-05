@@ -2,7 +2,7 @@
   "name": "promptr",
   "displayName": "Promptr",
   "description": "Transform text with AI inside VS Code. Select, hit ⌘⇧G, and watch your text transform.",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"
@@ -21,24 +21,12 @@
         "title": "Promptr: Generate Prompt"
       },
       {
-        "command": "promptr.quickInsertPrompt",
-        "title": "Promptr: Quick Insert Prompt"
-      },
-      {
-        "command": "promptr.openPromptEditor",
-        "title": "Promptr: New Prompt"
-      },
-      {
         "command": "promptr.setTemperature",
         "title": "Promptr: Set Temperature"
       },
       {
         "command": "promptr.setCustomContext",
         "title": "Promptr: Set Custom Context"
-      },
-      {
-        "command": "promptr.showMenu",
-        "title": "Promptr: Menu"
       }
     ],
     "keybindings": [
@@ -48,22 +36,6 @@
         "mac": "shift+cmd+g"
       }
     ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "promptr",
-          "title": "Promptr"
-        }
-      ]
-    },
-    "views": {
-      "promptr": [
-        {
-          "id": "promptrPromptLibrary",
-          "name": "Prompt Library"
-        }
-      ]
-    },
     "configuration": {
       "type": "object",
       "title": "Promptr Settings",

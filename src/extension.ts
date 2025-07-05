@@ -403,66 +403,21 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  /*
-   * Quick-Prompt picker – inserts a saved prompt body immediately.
-   */
-  const quickInsertCmd = vscode.commands.registerCommand('promptr.quickInsertPrompt', async () => {
-    const prompts: Prompt[] = context.globalState.get('prompts', []);
-    if (!prompts.length) {
-      vscode.window.showInformationMessage('No prompts saved yet.');
-      return;
-    }
-    const picked = await vscode.window.showQuickPick(
-      prompts.map(p => ({ label: p.name, description: p.tags?.join(', '), prompt: p })),
-      { placeHolder: 'Select a prompt' }
-    );
-    if (!picked) return;
-
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) return;
-
-    editor.insertSnippet(new vscode.SnippetString(picked.prompt.body));
-  });
-
-  /*
-   * Prompt Library tree view (read-only for now)
-   */
-  const promptProvider = new PromptTreeProvider(context);
-  vscode.window.registerTreeDataProvider('promptrPromptLibrary', promptProvider);
-
   /* ----------------- Temperature Status Bar ----------------- */
   const temperatureStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
 
   function refreshTemperatureStatus() {
     const temp = getConfig().get<number>('temperature', 0.3);
     temperatureStatus.text = `Promptr 🔥 ${temp.toFixed(1)}`;
-    temperatureStatus.tooltip = 'Promptr options';
-    temperatureStatus.command = 'promptr.showMenu';
+    temperatureStatus.tooltip = 'Click to set temperature';
+    temperatureStatus.command = 'promptr.setTemperature';
     temperatureStatus.show();
   }
 
   refreshTemperatureStatus();
 
   /* -------------- Command: Promptr Menu --------------- */
-  const showMenuCmd = vscode.commands.registerCommand('promptr.showMenu', async () => {
-    const pick = await vscode.window.showQuickPick(
-      [
-        { label: '$(flame) Set Temperature', action: 'temperature' },
-        { label: '$(pencil) Edit Custom Context', action: 'context' }
-      ],
-      { placeHolder: 'Promptr Options' }
-    );
-
-    if (!pick) {
-      return;
-    }
-
-    if (pick.action === 'temperature') {
-      vscode.commands.executeCommand('promptr.setTemperature');
-    } else if (pick.action === 'context') {
-      vscode.commands.executeCommand('promptr.setCustomContext');
-    }
-  });
+  // const showMenuCmd = vscode.commands.registerCommand('promptr.showMenu', async () => { /* removed */ });
 
   /* ------------ Command: Set Custom Context ----------- */
   const setCustomContextCmd = vscode.commands.registerCommand('promptr.setCustomContext', async () => {
@@ -482,8 +437,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage('Promptr: Custom context updated');
   });
 
-  context.subscriptions.push(temperatureStatus);
-  context.subscriptions.push(showMenuCmd, setCustomContextCmd);
+  context.subscriptions.push(temperatureStatus, setCustomContextCmd);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -533,7 +487,24 @@ export function activate(context: vscode.ExtensionContext) {
     return '';
   }
 
-  context.subscriptions.push(generatePromptCmd, quickInsertCmd, promptProvider, log);
+  /* -------------- First-run Welcome Tip -------------- */
+  const WELCOME_KEY = 'promptrWelcomeShown';
+  if (!context.globalState.get<boolean>(WELCOME_KEY)) {
+    vscode.window.showInformationMessage(
+      '🎉 Promptr is ready! Fine-tune AI with Temperature or add project context for better answers.',
+      'Set Temperature 🔥',
+      'Set Custom Context ✍️'
+    ).then(selection => {
+      if (selection?.startsWith('Set Temperature')) {
+        vscode.commands.executeCommand('promptr.setTemperature');
+      } else if (selection?.startsWith('Set Custom Context')) {
+        vscode.commands.executeCommand('promptr.setCustomContext');
+      }
+    });
+    context.globalState.update(WELCOME_KEY, true);
+  }
+
+  context.subscriptions.push(generatePromptCmd, log);
   log.appendLine('Extension setup complete');
 }
 
