@@ -298,10 +298,7 @@ export function activate(context: vscode.ExtensionContext) {
     const retrievedText = await getSelectedTextCrossPlatform(log);
     
     if (retrievedText) {
-      selectedText = retrievedText.length > 4000 ? retrievedText.slice(0, 4000) : retrievedText;
-      if (retrievedText.length > 4000) {
-        log.appendLine(`✂️ User text truncated from ${retrievedText.length} to 4000 chars to preserve context window.`);
-      }
+      selectedText = retrievedText;
       
       // Determine source
       if (editor && !editor.selection.isEmpty && editor.document.getText(editor.selection) === retrievedText) {
@@ -317,10 +314,6 @@ export function activate(context: vscode.ExtensionContext) {
     // If still no text, use full document as fallback
     if (!selectedText && editor) {
       selectedText = editor.document.getText();
-      if (selectedText.length > 4000) {
-        selectedText = selectedText.slice(0, 4000);
-        log.appendLine(`✂️ Full document truncated to 4000 chars.`);
-      }
       textSource = 'full document fallback';
       log.appendLine(`⚠️ Using full document: ${selectedText.length} characters`);
     }
@@ -377,6 +370,14 @@ export function activate(context: vscode.ExtensionContext) {
       
       try {
         aiResponse = await aiCall(selectedText, apiBase, apiKey as string, log);
+
+        // --- Leak check: abort if model echoed hidden system prompt ---
+        const leaked = aiResponse.includes(PROMPTR_SENTINEL) || /### CORE OBJECTIVE ###|### USER-PROVIDED CONTEXT ###/i.test(aiResponse);
+        if (leaked) {
+          log.appendLine('🚫 AI response contained internal prompt markers – blocked.');
+          vscode.window.showWarningMessage('AI response was blocked because it exposed internal instructions.');
+          return; // stop before any clipboard or editor changes
+        }
       } catch (err: any) {
         log.appendLine(`AI call failed: ${err?.message ?? err}`);
         vscode.window.showErrorMessage(err.message || 'AI request failed');
@@ -582,6 +583,9 @@ class PromptTreeProvider implements vscode.TreeDataProvider<PromptItem>, vscode.
   }
 }
 
+// Invisible sentinel used to detect and prevent system-prompt leakage
+const PROMPTR_SENTINEL = '\u2063\u2063PROMPTR_SYS';
+
 async function aiCall(input: string, apiBase: string | undefined, apiKey: string, log: vscode.OutputChannel): Promise<string> {
   // Use OpenAI API directly with build-time embedded key
   const urlString = apiBase ? `${apiBase.replace(/\/$/, '')}/v1/chat/completions` : 'https://api.openai.com/v1/chat/completions';
@@ -595,7 +599,7 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
   const userContext = vscode.workspace.getConfiguration('promptr').get<string>('customContext', '').trim();
 
   // Build enhanced system prompt starting with the custom context (if any)
-  let contextualPrompt = '';
+  let contextualPrompt = PROMPTR_SENTINEL + ' ';
   if (userContext) {
     contextualPrompt += `### USER-PROVIDED CONTEXT ###\n${userContext}\n\n`;
   }
@@ -613,6 +617,7 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
     model: 'gpt-3.5-turbo-0125',
     temperature: vscode.workspace.getConfiguration('promptr').get<number>('temperature', 0.3),
     max_tokens: 500,
+    stop: ['PROMPTR_SYS'],
     messages: [
       { role: 'system', content: contextualPrompt },
       { role: 'user', content: input }
