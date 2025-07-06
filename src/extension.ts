@@ -427,19 +427,31 @@ export function activate(context: vscode.ExtensionContext) {
 
   /* ----------------- Temperature Status Bar ----------------- */
   const temperatureStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
+  temperatureStatus.command = 'promptr.showMenu';
 
   function refreshTemperatureStatus() {
     const temp = getConfig().get<number>('temperature', 0.3);
     temperatureStatus.text = `Promptr 🔥 ${temp.toFixed(1)}`;
-    temperatureStatus.tooltip = 'Click to set temperature';
-    temperatureStatus.command = 'promptr.setTemperature';
+    temperatureStatus.tooltip = 'Promptr options';
     temperatureStatus.show();
   }
 
   refreshTemperatureStatus();
 
   /* -------------- Command: Promptr Menu --------------- */
-  // const showMenuCmd = vscode.commands.registerCommand('promptr.showMenu', async () => { /* removed */ });
+  const showMenuCmd = vscode.commands.registerCommand('promptr.showMenu', async () => {
+    const pick = await vscode.window.showQuickPick([
+      { label: '$(flame) Set Temperature', action: 'temperature' },
+      { label: '$(pencil) Edit Custom Context', action: 'context' }
+    ], { placeHolder: 'Promptr Options' });
+
+    if (!pick) { return; }
+    if (pick.action === 'temperature') {
+      vscode.commands.executeCommand('promptr.setTemperature');
+    } else if (pick.action === 'context') {
+      vscode.commands.executeCommand('promptr.setCustomContext');
+    }
+  });
 
   /* ------------ Command: Set Custom Context ----------- */
   const setCustomContextCmd = vscode.commands.registerCommand('promptr.setCustomContext', async () => {
@@ -459,7 +471,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage('Promptr: Custom context updated');
   });
 
-  context.subscriptions.push(temperatureStatus, setCustomContextCmd);
+  context.subscriptions.push(temperatureStatus, showMenuCmd, setCustomContextCmd);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
