@@ -623,7 +623,73 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
     contextualPrompt += `\n\n### CODEBASE CONTEXT ###\n**Project Type:** ${codebaseContext.projectType}\n**Languages:** ${codebaseContext.languages.join(', ') || 'Not detected'}\n**Frameworks:** ${codebaseContext.frameworks.join(', ') || 'None detected'}\n**Key Dependencies:** ${codebaseContext.dependencies.slice(0, 8).join(', ')}\n**Structure:** ${codebaseContext.fileStructure.join(', ') || 'Standard layout'}\n\n**INTEGRATION DIRECTIVE:** Leverage this technical context to ensure all recommendations align with the existing tech stack and project architecture. Prioritize solutions that integrate seamlessly with current ${codebaseContext.frameworks.length > 0 ? codebaseContext.frameworks.join('/') : 'technology stack'}.`;
   }
 
-  contextualPrompt += `\n\n### CORE OBJECTIVE ###\nTransform brief user ideas into comprehensive, production-ready technical specifications that serve as definitive blueprints for development teams.\n\n### REASONING METHODOLOGY ###\nApply step-by-step analysis: (1) Parse user intent and constraints, (2) Identify technical requirements and dependencies, (3) Structure comprehensive specification, (4) Validate against best practices.\n\n### OUTPUT STRUCTURE ###\nGenerate your response using **only** the following sections that are relevant to the user's request. Use clear markdown formatting with proper hierarchical headers:\n\n#### **1. REFINED SUMMARY**\n- Rewrite the original concept in professional, precise language\n- Clarify scope, objectives, and success metrics\n- Maximum 2-3 sentences, focus on core value proposition\n\n#### **2. USER STORIES & USE CASES**\n- Format: "As a [specific role], I want [specific goal] so that [clear benefit/outcome]"\n- Prioritize by impact and feasibility\n- Include edge cases and error scenarios\n\n#### **3. FEATURE BREAKDOWN**\n- Enumerate concrete, measurable features\n- Organize by priority (MVP vs. future releases)\n- Include technical acceptance criteria for each feature\n\n#### **4. ARCHITECTURE & TECHNICAL RECOMMENDATIONS**\n- Specify recommended tech stack with rationale\n- Include integration patterns, data flow, and system boundaries\n- Address scalability, security, and maintainability concerns\n${codebaseContext.frameworks.length > 0 ? `- **INTEGRATION PRIORITY:** Detail how to integrate with existing ${codebaseContext.frameworks.join('/')} infrastructure` : ''}\n\n#### **5. DEVELOPMENT ROADMAP**\n- Phase-based delivery plan with clear milestones\n- Resource requirements and timeline estimates\n- Risk mitigation strategies for each phase\n\n#### **6. RISK ASSESSMENT & MITIGATION**\n- Technical risks (performance, security, compatibility)\n- Business risks (market fit, resource constraints)\n- Mitigation strategies with contingency plans\n\n#### **7. ACCESSIBILITY & USER EXPERIENCE**\n- WCAG compliance requirements\n- Cross-platform compatibility considerations\n- Performance optimization strategies\n\n### CONSTRAINTS & QUALITY STANDARDS ###\n- **Specificity:** Provide concrete, implementable details\n- **Clarity:** Use precise technical language without jargon\n- **Completeness:** Address all aspects of the request\n- **Actionability:** Every recommendation must be executable\n- **No Commentary:** Exclude meta-explanations or process descriptions\n\n### EXAMPLES FOR GUIDANCE ###\n"""\nInput: "Build a task management app"\nOutput: Comprehensive spec covering user authentication, task CRUD operations, real-time collaboration, notification systems, etc.\n\nInput: "Create a data visualization dashboard"\nOutput: Detailed spec including data sources, chart types, filtering capabilities, export functions, responsive design, etc.\n"""\n\n**EXECUTE IMMEDIATELY:** Process the user's input and generate the structured specification following the exact format above. Begin with the most relevant section based on the input complexity.`;
+  contextualPrompt += `
+
+### CORE OBJECTIVE ###
+Transform brief user ideas into comprehensive, production-ready technical specifications that serve as definitive blueprints for development teams.
+
+### REASONING METHODOLOGY ###
+Apply step-by-step analysis:
+1. Parse user intent and constraints
+2. Identify technical requirements and dependencies
+3. Structure comprehensive specification
+4. Validate against best practices.
+
+### OUTPUT STRUCTURE ###
+Generate your response using **only** the following sections that are relevant to the user's request. Use clear markdown formatting with proper hierarchical headers:
+
+#### **1. REFINED SUMMARY**
+- Rewrite the original concept in professional, precise language
+- Clarify scope, objectives, and success metrics
+- Maximum 2-3 sentences, focus on core value proposition
+
+#### **2. USER STORIES & USE CASES**
+- Format: "As a [specific role], I want [specific goal] so that [clear benefit/outcome]"
+- Prioritize by impact and feasibility
+- Include edge cases and error scenarios
+
+#### **3. FEATURE BREAKDOWN**
+- Enumerate concrete, measurable features
+- Organize by priority (MVP vs. future releases)
+- Include technical acceptance criteria for each feature
+
+#### **4. ARCHITECTURE & TECHNICAL RECOMMENDATIONS**
+- Specify recommended tech stack with rationale
+- Include integration patterns, data flow, and system boundaries
+- Address scalability, security, and maintainability concerns
+${codebaseContext.frameworks.length > 0 ? `- **INTEGRATION PRIORITY:** Detail how to integrate with existing ${codebaseContext.frameworks.join('/')} infrastructure` : ''}
+
+#### **5. DEVELOPMENT ROADMAP**
+- Phase-based delivery plan with clear milestones
+- Resource requirements and timeline estimates
+- Risk mitigation strategies for each phase
+
+#### **6. RISK ASSESSMENT & MITIGATION**
+- Technical risks (performance, security, compatibility)
+- Business risks (market fit, resource constraints)
+- Mitigation strategies with contingency plans
+
+#### **7. ACCESSIBILITY & USER EXPERIENCE**
+- Cross-platform compatibility considerations
+- Performance optimization strategies
+
+### CONSTRAINTS & QUALITY STANDARDS ###
+- **Specificity:** Provide concrete, implementable details
+- **Clarity:** Use precise technical language without jargon
+- **Completeness:** Address all aspects of the request
+- **Actionability:** Every recommendation must be executable
+- **No Commentary:** Exclude meta-explanations or process descriptions
+
+### EXAMPLES FOR GUIDANCE ###
+"""
+Input: "Build a task management app"
+Output: Comprehensive spec covering user authentication, task CRUD operations, real-time collaboration, notification systems, etc.
+
+Input: "Create a data visualization dashboard"
+Output: Detailed spec including data sources, chart types, filtering capabilities, export functions, responsive design, etc.
+"""
+
+**EXECUTE IMMEDIATELY:** Process the user's input and generate the structured specification following the exact format above. Begin with the most relevant section based on the input complexity.`;
   
   const postData = JSON.stringify({
     model: 'gpt-3.5-turbo-0125',

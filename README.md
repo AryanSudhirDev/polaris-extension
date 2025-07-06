@@ -8,38 +8,36 @@ Transform your text with AI right inside VS Code/Cursor. Select text, hit ⌘⇧
 3. Watch your text transform
 
 ## Features
-- One-click text transformation with AI
-- Smart temperature control (0.0 = focused, 1.0 = creative)
-- Seamless VS Code integration
-- No API key needed - works out of the box
+* AI-powered prompt refinement with a single hot-key
+* Status-bar 🔥 slider to adjust model creativity (temperature)
+* Custom project context injection per workspace
+* Auto-copy / auto-paste so results land on your clipboard (or replace selection) instantly
+* One-time welcome tip to surface options; zero-clutter UI (Prompt Library removed)
+* Lightweight injection-guard to block prompts that leak internal instructions
+* Works out-of-the-box – no OpenAI key required
 
 ## Settings
-* `promptr.temperature` - Adjust AI creativity (0.0-1.0)
-* `promptr.apiBase` - Custom API endpoint (default: OpenAI)
+| Setting | Default | Description |
+| --- | --- | --- |
+| `promptr.temperature` | `0.3` | Controls randomness / creativity (0 → deterministic) |
+| `promptr.customContext` | `""` | Extra context prepended to every prompt, per-workspace |
+| `promptr.apiBase` | `https://api.openai.com` | Override backend (rarely needed) |
 
-## Hotkeys
-* Generate AI Response: `⌘⇧G` (Mac) / `Ctrl+Shift+G` (Windows/Linux)
-* Temperature: Click 🔥 in status bar
-
-## ⌨️ Core Commands
-| Command Palette label | Default hot-key |
+## Hot-keys / UI
+| Action | Default |
 | --- | --- |
-| Promptr: Generate Prompt | `⌘⇧G` |
-| Promptr: Quick Insert Prompt | – |
-| Promptr: Set Temperature | – |
-| Promptr: Menu (status-bar) | click `Promptr 🔥` |
+| Generate Prompt | `⌘⇧G` / `Ctrl+Shift+G` |
+| Options Menu (Temperature / Context) | click the `Promptr 🔥 x.x` status-bar item |
 
-## ⚙️ Settings (`File → Preferences → Settings` → search *promptr*)
-* `promptr.apiBase` – Override the API endpoint (default `https://api.openai.com`).
-* `promptr.temperature` – 0.0 (focused) → 1.0 (creative). Also accessible via status-bar.
-* `promptr.insertMode` – `replace` / `below` (where to put AI output).
-* `promptr.hotkey` – Custom hot-key for Generate Prompt.
-* `promptr.customContext` – Extra project context that is always sent to the model.
+## ⌨️ Commands
+* **Promptr: Generate Prompt** – main action (hot-key above)
+* **Promptr: Set Temperature** – also accessible via status-bar menu
+* **Promptr: Set Custom Context** – likewise via menu
 
 ## 💡 Tips
-• Use the **Prompt Library** side panel to save reusable prompts.
-• The extension auto-analyzes your workspace (languages, frameworks) and feeds that into the prompt – responses are aware of your tech stack.
-• API key is stored with VS Code Secret Storage; you can clear it via **Promptr: Menu → Edit Custom Context → leave blank** then confirm.
+• The extension auto-detects your workspace language / framework and injects that context automatically.
+• First time you install, you'll get a toast pointing you to the Temperature & Context options.
+• Holding a large selection? Promptr replaces it in-place; otherwise it pastes below and copies to your clipboard.
 
 ---
 Happy prompting! ✨ 
