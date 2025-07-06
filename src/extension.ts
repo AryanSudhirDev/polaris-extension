@@ -694,7 +694,7 @@ Output: Detailed spec including data sources, chart types, filtering capabilitie
   const postData = JSON.stringify({
     model: 'gpt-3.5-turbo-0125',
     temperature: vscode.workspace.getConfiguration('promptr').get<number>('temperature', 0.3),
-    max_tokens: 500,
+    max_tokens: 950,
     stop: ['PROMPTR_SYS'],
     messages: [
       { role: 'system', content: contextualPrompt },
