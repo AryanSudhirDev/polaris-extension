@@ -298,7 +298,10 @@ export function activate(context: vscode.ExtensionContext) {
     const retrievedText = await getSelectedTextCrossPlatform(log);
     
     if (retrievedText) {
-      selectedText = retrievedText;
+      selectedText = retrievedText.length > 4000 ? retrievedText.slice(0, 4000) : retrievedText;
+      if (retrievedText.length > 4000) {
+        log.appendLine(`✂️ User text truncated from ${retrievedText.length} to 4000 chars to preserve context window.`);
+      }
       
       // Determine source
       if (editor && !editor.selection.isEmpty && editor.document.getText(editor.selection) === retrievedText) {
@@ -314,6 +317,10 @@ export function activate(context: vscode.ExtensionContext) {
     // If still no text, use full document as fallback
     if (!selectedText && editor) {
       selectedText = editor.document.getText();
+      if (selectedText.length > 4000) {
+        selectedText = selectedText.slice(0, 4000);
+        log.appendLine(`✂️ Full document truncated to 4000 chars.`);
+      }
       textSource = 'full document fallback';
       log.appendLine(`⚠️ Using full document: ${selectedText.length} characters`);
     }
@@ -322,6 +329,20 @@ export function activate(context: vscode.ExtensionContext) {
       log.appendLine('💥 NO TEXT FOUND');
       vscode.window.showErrorMessage('Please select some text first.');
       return;
+    }
+
+    // Quick override-phrase heuristic
+    if (containsOverridePhrases(selectedText)) {
+      const proceed = await vscode.window.showWarningMessage(
+        'Promptr: Selected text may attempt to override safety instructions. Continue?',
+        { modal: false },
+        'Send Anyway',
+        'Cancel'
+      );
+      if (proceed !== 'Send Anyway') {
+        log.appendLine('User cancelled due to suspicious phrases');
+        return;
+      }
     }
 
     // Log what we're about to send to AI
@@ -696,6 +717,11 @@ async function autoPaste(text: string, log: vscode.OutputChannel): Promise<void>
     log.appendLine(`❌ autoPaste error: ${err.message || err}`);
     log.appendLine('📋 AI output kept in clipboard for manual paste');
   }
+}
+
+/* ---------------- Suspicious instruction detector --------------- */
+function containsOverridePhrases(text: string): boolean {
+  return /(ignore|override|disregard|forget previous|system prompt|jailbreak)/i.test(text);
 }
 
  
