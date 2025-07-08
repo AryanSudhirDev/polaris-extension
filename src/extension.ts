@@ -9,6 +9,7 @@ import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
+
 const execAsync = promisify(exec);
 
 interface CodebaseContext {
@@ -137,12 +138,15 @@ async function getCodebaseContext(log: vscode.OutputChannel): Promise<CodebaseCo
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  
   const EXT_NAMESPACE = 'promptr';
   
   const getConfig = () => vscode.workspace.getConfiguration(EXT_NAMESPACE);
 
   // Create output channel but don't show it automatically
   const log = vscode.window.createOutputChannel('Promptr');
+  
+
   
   /*
    * Get selected text from VS Code/Cursor chat interface (cross-platform)
@@ -344,11 +348,13 @@ export function activate(context: vscode.ExtensionContext) {
     log.appendLine(`   Length: ${selectedText.length} characters`);
     log.appendLine(`   Preview: "${selectedText.substring(0, 100)}..."`);
 
-    // Get API configuration - use proxy server
+
+
+    // Get API configuration - use original OpenAI setup
     const apiBase = getConfig().get<string>('apiBase', 'https://api.openai.com');
     log.appendLine(`API base: ${apiBase}`);
     
-    // Use embedded API key
+    // Use embedded API key (original functionality)
     const apiKey = process.env.PROMPTR_MASTER_KEY;
     
     if (!apiKey) {
@@ -520,6 +526,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
     return '';
   }
+
+
 
   /* -------------- First-run Welcome Tip -------------- */
   const WELCOME_KEY = 'promptrWelcomeShown';
@@ -806,5 +814,7 @@ async function autoPaste(text: string, log: vscode.OutputChannel): Promise<void>
 function containsOverridePhrases(text: string): boolean {
   return /(ignore|override|disregard|forget previous|system prompt|jailbreak)/i.test(text);
 }
+
+
 
  

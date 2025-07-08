@@ -7,6 +7,8 @@ Transform your text with AI right inside VS Code/Cursor. Select text, hit ⌘⇧
 2. Hit ⌘⇧G with text selected
 3. Watch your text transform
 
+
+
 ## Features
 * AI-powered prompt refinement with a single hot-key
 * Status-bar 🔥 slider to adjust model creativity (temperature)
