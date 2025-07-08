@@ -24,11 +24,15 @@
         "command": "promptr.setTemperature",
         "title": "Promptr: Set Temperature"
       },
-              {
-          "command": "promptr.setCustomContext",
-          "title": "Promptr: Set Custom Context"
-        }
-      ],
+      {
+        "command": "promptr.setCustomContext",
+        "title": "Promptr: Set Custom Context"
+      },
+      {
+        "command": "promptr.enterAccessToken",
+        "title": "Promptr: Enter Access Token"
+      }
+    ],
     "keybindings": [
       {
         "command": "promptr.generatePrompt",
@@ -70,6 +74,16 @@
           "type": "string",
           "default": "",
           "description": "Additional context to include in every AI prompt (e.g., project description, coding guidelines)"
+        },
+        "promptr.autoValidate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically validate Promptr token on extension startup"
+        },
+        "promptr.backendApiUrl": {
+          "type": "string",
+          "default": "https://xzrajxmrwumzzbnlozzr.supabase.co/functions/v1/",
+          "description": "Backend API URL for token-based authentication"
         }
       }
     }

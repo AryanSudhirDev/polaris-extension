@@ -8,6 +8,7 @@ import { promisify } from 'util';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import { checkUserAccess, setExtensionContext, enterAccessTokenCommand } from './token-auth';
 
 
 const execAsync = promisify(exec);
@@ -138,6 +139,8 @@ async function getCodebaseContext(log: vscode.OutputChannel): Promise<CodebaseCo
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  // Set the extension context for auth module
+  setExtensionContext(context);
   
   const EXT_NAMESPACE = 'promptr';
   
@@ -292,6 +295,15 @@ export function activate(context: vscode.ExtensionContext) {
    */
   const generatePromptCmd = vscode.commands.registerCommand('promptr.generatePrompt', async () => {
     log.appendLine('=== Promptr Generate Prompt Command Started ===');
+    
+    // Check authentication first
+    const hasAccess = await checkUserAccess();
+    if (!hasAccess) {
+      log.appendLine('❌ Authentication failed - user was notified');
+      return; // User was already notified of the issue
+    }
+    
+    log.appendLine('✅ Authentication successful - proceeding with prompt generation');
     
     const editor = vscode.window.activeTextEditor;
     let selectedText = '';
@@ -477,7 +489,12 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage('Promptr: Custom context updated');
   });
 
-  context.subscriptions.push(temperatureStatus, showMenuCmd, setCustomContextCmd);
+  // Register the enterAccessToken command
+  const enterTokenCmd = vscode.commands.registerCommand('promptr.enterAccessToken', async () => {
+    await enterAccessTokenCommand();
+  });
+
+  context.subscriptions.push(temperatureStatus, showMenuCmd, setCustomContextCmd, enterTokenCmd);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -486,6 +503,15 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  // Optional: Auto-validate on startup if configured
+  const config = vscode.workspace.getConfiguration('promptr');
+  if (config.get('autoValidate', true)) {
+    // Silently check access on startup (don't show errors)
+    checkUserAccess().catch(() => {
+      // Silently fail - user will be prompted when they use commands
+    });
+  }
 
   /* ---------------- Command: Set Temperature --------------- */
   const setTemperatureCmd = vscode.commands.registerCommand('promptr.setTemperature', async () => {
