@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 export interface TokenValidationResponse {
   access: boolean;
@@ -16,15 +18,14 @@ export async function validateAccessToken(token: string): Promise<TokenValidatio
   const endpoint = `${backendUrl}promptr-token-check`;
   
   // Supabase anon key (safe to include in extension)
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6cmFqeG1yd3VtenpibmxvenpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5OTMwNTYsImV4cCI6MjA0ODU2OTA1Nn0.L75zfXg3tfYqnVY9xObCHlrN0RIE_V6-cWMlZwxfqfQ';
   
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        'apikey': process.env.SUPABASE_ANON_KEY || '',
+        'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY || ''}`
       },
       body: JSON.stringify({ promptr_token: token })
     });
