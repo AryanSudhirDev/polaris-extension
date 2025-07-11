@@ -56,7 +56,7 @@ export async function checkUserAccess(): Promise<boolean> {
     // Show input box for token
     const inputToken = await vscode.window.showInputBox({
       prompt: 'Enter your Promptr access token',
-      placeHolder: 'Get your token from https://promptr.dev/dashboard',
+      placeHolder: 'Get your token from https://usepromptr.com/account',
       password: true,
       ignoreFocusOut: true
     });
@@ -105,7 +105,7 @@ export async function checkUserAccess(): Promise<boolean> {
       );
       
       if (action === 'Open Billing') {
-        vscode.env.openExternal(vscode.Uri.parse('https://promptr.dev/dashboard'));
+        vscode.env.openExternal(vscode.Uri.parse('https://usepromptr.com/account'));
       } else if (action === 'Enter New Token') {
         return await checkUserAccess(); // Recursive call to re-enter token
       }
@@ -119,7 +119,7 @@ export async function checkUserAccess(): Promise<boolean> {
       if (action === 'Enter New Token') {
         return await checkUserAccess(); // Recursive call to re-enter token
       } else if (action === 'Get Token') {
-        vscode.env.openExternal(vscode.Uri.parse('https://promptr.dev/dashboard'));
+        vscode.env.openExternal(vscode.Uri.parse('https://usepromptr.com/account'));
       }
     }
     
@@ -133,7 +133,7 @@ export async function checkUserAccess(): Promise<boolean> {
 export async function enterAccessTokenCommand(): Promise<void> {
   const token = await vscode.window.showInputBox({
     prompt: 'Enter your Promptr access token',
-    placeHolder: 'Get your token from https://promptr.dev/dashboard',
+    placeHolder: 'Get your token from https://usepromptr.com/account',
     password: true,
     ignoreFocusOut: true
   });
