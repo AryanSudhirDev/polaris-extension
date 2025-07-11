@@ -15,7 +15,7 @@ export async function validateAccessToken(token: string): Promise<TokenValidatio
   const backendUrl = config.get<string>('backendApiUrl', 'https://xzrajxmrwumzzbnlozzr.supabase.co/functions/v1/');
   const endpoint = `${backendUrl}promptr-token-check`;
   
-  // Use the service role key from the environment
+  // Use service role key because the edge function has verify_jwt enabled
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   
   try {
@@ -23,6 +23,9 @@ export async function validateAccessToken(token: string): Promise<TokenValidatio
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Only the anon key is required for invoking edge functions.
+        // Deliberately avoid sending the service-role key so the backend can accurately
+        // reject invalid or expired user tokens.
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
       },
@@ -35,7 +38,9 @@ export async function validateAccessToken(token: string): Promise<TokenValidatio
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
-    return await response.json();
+    const json = await response.json();
+    console.log('Promptr token-check response:', json);
+    return json;
   } catch (error: any) {
     console.error('Token validation failed:', error);
     return {

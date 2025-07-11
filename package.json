@@ -2,7 +2,7 @@
   "name": "promptr",
   "displayName": "Promptr",
   "description": "Turn vague ideas into precise, high-quality prompts.",
-  "version": "1.2.2",
+  "version": "1.2.5",
   "publisher": "aryansudhir",
   "engines": {
     "vscode": "^1.86.0"

@@ -53,6 +53,7 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
+        PROMPTR_MASTER_KEY: JSON.stringify(apiKey),
         SUPABASE_URL: JSON.stringify(supabaseUrl),
         SUPABASE_ANON_KEY: JSON.stringify(supabaseAnonKey),
         SUPABASE_SERVICE_ROLE_KEY: JSON.stringify(supabaseServiceRoleKey),

@@ -387,10 +387,11 @@ export function activate(context: vscode.ExtensionContext) {
       let aiResponse: string;
       
       try {
-        aiResponse = await aiCall(selectedText, apiBase, apiKey as string, log);
+        const { response, sentinel } = await aiCall(selectedText, apiBase, apiKey as string, log);
+        aiResponse = response;
 
         // --- Leak check: abort if model echoed hidden system prompt ---
-        const leaked = aiResponse.includes(PROMPTR_SENTINEL) || /### CORE OBJECTIVE ###|### USER-PROVIDED CONTEXT ###/i.test(aiResponse);
+        const leaked = aiResponse.includes(sentinel) || /### CORE OBJECTIVE ###|### USER-PROVIDED CONTEXT ###/i.test(aiResponse);
         if (leaked) {
           log.appendLine('🚫 AI response contained internal prompt markers – blocked.');
           vscode.window.showWarningMessage('AI response was blocked because it exposed internal instructions.');
@@ -460,7 +461,8 @@ export function activate(context: vscode.ExtensionContext) {
   const showMenuCmd = vscode.commands.registerCommand('promptr.showMenu', async () => {
     const pick = await vscode.window.showQuickPick([
       { label: '$(flame) Set Temperature', action: 'temperature' },
-      { label: '$(pencil) Edit Custom Context', action: 'context' }
+      { label: '$(pencil) Edit Custom Context', action: 'context' },
+      { label: '$(key) Enter Access Token', action: 'token' }
     ], { placeHolder: 'Promptr Options' });
 
     if (!pick) { return; }
@@ -468,6 +470,8 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.commands.executeCommand('promptr.setTemperature');
     } else if (pick.action === 'context') {
       vscode.commands.executeCommand('promptr.setCustomContext');
+    } else if (pick.action === 'token') {
+      vscode.commands.executeCommand('promptr.enterAccessToken');
     }
   });
 
@@ -629,10 +633,23 @@ class PromptTreeProvider implements vscode.TreeDataProvider<PromptItem>, vscode.
   }
 }
 
-// Invisible sentinel used to detect and prevent system-prompt leakage
-const PROMPTR_SENTINEL = '\u2063\u2063PROMPTR_SYS';
+// Invisible sentinel used to detect and prevent system-prompt leakage.
+// Generate a fresh, unpredictable sentinel each request so the model
+// can’t reliably reference it. The sentinel is a zero-width char pair
+// followed by a random tag. Example: "\u2063\u2063PROMPTR_K4P9X".
+function generateSentinel(): string {
+  const rand = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `\u2063\u2063PROMPTR_${rand}`;
+}
 
-async function aiCall(input: string, apiBase: string | undefined, apiKey: string, log: vscode.OutputChannel): Promise<string> {
+// 🔒 NOTE: Do NOT export generateSentinel – keep it private to this module.
+
+interface AIResult {
+  response: string;
+  sentinel: string;
+}
+
+async function aiCall(input: string, apiBase: string | undefined, apiKey: string, log: vscode.OutputChannel): Promise<AIResult> {
   // Use OpenAI API directly with build-time embedded key
   const urlString = apiBase ? `${apiBase.replace(/\/$/, '')}/v1/chat/completions` : 'https://api.openai.com/v1/chat/completions';
   const url = new URL(urlString);
@@ -644,8 +661,9 @@ async function aiCall(input: string, apiBase: string | undefined, apiKey: string
   // Retrieve the user-provided custom context and place it FIRST in the system prompt so GPT processes it with maximum weight
   const userContext = vscode.workspace.getConfiguration('promptr').get<string>('customContext', '').trim();
 
-  // Build enhanced system prompt starting with the custom context (if any)
-  let contextualPrompt = PROMPTR_SENTINEL + ' ';
+  // --- Build system prompt with a fresh sentinel ---
+  const sentinel = generateSentinel();
+  let contextualPrompt = sentinel + ' ';
   if (userContext) {
     contextualPrompt += `### USER-PROVIDED CONTEXT ###\n${userContext}\n\n`;
   }
@@ -729,7 +747,7 @@ Output: Detailed spec including data sources, chart types, filtering capabilitie
     model: 'gpt-3.5-turbo-0125',
     temperature: vscode.workspace.getConfiguration('promptr').get<number>('temperature', 0.3),
     max_tokens: 950,
-    stop: ['PROMPTR_SYS'],
+    stop: [sentinel],
     messages: [
       { role: 'system', content: contextualPrompt },
       { role: 'user', content: input }
@@ -768,7 +786,7 @@ Output: Detailed spec including data sources, chart types, filtering capabilitie
           const json = JSON.parse(data);
           log.appendLine('AI response received');
           const content = json.choices?.[0]?.message?.content ?? 'Error: no content';
-          resolve(content.trim());
+          resolve({ response: content.trim(), sentinel });
         } catch (err) {
           log.appendLine(`JSON parse error: ${err}`);
           reject(err);

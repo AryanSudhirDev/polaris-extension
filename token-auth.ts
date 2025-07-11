@@ -10,7 +10,7 @@ export interface TokenValidationResponse {
 }
 
 /**
- * Validates a Promptr access token against the backend
+ * Validates a Promptr access token against the backend (legacy implementation)
  */
 export async function validateAccessToken(token: string): Promise<TokenValidationResponse> {
   const config = vscode.workspace.getConfiguration('promptr');
@@ -47,7 +47,7 @@ export async function validateAccessToken(token: string): Promise<TokenValidatio
 }
 
 /**
- * Check if user has valid Promptr access using stored or entered token
+ * Check if user has valid Promptr access using stored or entered token (legacy version)
  */
 export async function checkUserAccess(): Promise<boolean> {
   // First check if they have a token stored
@@ -129,7 +129,7 @@ export async function checkUserAccess(): Promise<boolean> {
 }
 
 /**
- * Manual token entry command
+ * Manual token entry command (legacy)
  */
 export async function enterAccessTokenCommand(): Promise<void> {
   const token = await vscode.window.showInputBox({
