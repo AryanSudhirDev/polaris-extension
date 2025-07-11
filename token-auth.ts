@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 export interface TokenValidationResponse {
   access: boolean;
   status?: 'trialing' | 'active' | 'inactive';
-  user_email?: string;
+  email?: string;
   message?: string;
 }
 
@@ -15,16 +17,15 @@ export async function validateAccessToken(token: string): Promise<TokenValidatio
   const backendUrl = config.get<string>('backendApiUrl', 'https://xzrajxmrwumzzbnlozzr.supabase.co/functions/v1/');
   const endpoint = `${backendUrl}promptr-token-check`;
   
-  // Use the service role key from the environment
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  // Supabase anon key (safe to include in extension)
   
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        'apikey': process.env.SUPABASE_ANON_KEY || '',
+        'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY || ''}`
       },
       body: JSON.stringify({ promptr_token: token })
     });
@@ -56,7 +57,7 @@ export async function checkUserAccess(): Promise<boolean> {
     // Show input box for token
     const inputToken = await vscode.window.showInputBox({
       prompt: 'Enter your Promptr access token',
-      placeHolder: 'Get your token from https://usepromptr.com/account',
+      placeHolder: 'Get your token from https://promptr.dev/dashboard',
       password: true,
       ignoreFocusOut: true
     });
@@ -79,13 +80,13 @@ export async function checkUserAccess(): Promise<boolean> {
   const result = await validateAccessToken(token);
   
   if (result.access && (result.status === 'active' || result.status === 'trialing')) {
-    console.log(`✅ Promptr access granted for ${result.user_email} (${result.status})`);
+    console.log(`✅ Promptr access granted for ${result.email} (${result.status})`);
     
     // Show success message for first-time setup or status changes
     const lastStatus = await getLastKnownStatus();
     if (!lastStatus || lastStatus !== result.status) {
       vscode.window.showInformationMessage(
-        `✨ Promptr ${result.status} subscription verified for ${result.user_email}`
+        `✨ Promptr ${result.status} subscription verified for ${result.email}`
       );
       await storeLastKnownStatus(result.status);
     }
@@ -105,13 +106,13 @@ export async function checkUserAccess(): Promise<boolean> {
       );
       
       if (action === 'Open Billing') {
-        vscode.env.openExternal(vscode.Uri.parse('https://usepromptr.com/account'));
+        vscode.env.openExternal(vscode.Uri.parse('https://promptr.dev/dashboard'));
       } else if (action === 'Enter New Token') {
         return await checkUserAccess(); // Recursive call to re-enter token
       }
     } else {
       const action = await vscode.window.showErrorMessage(
-        '❌ Invalid token: Please check your access token and try again. You can get a valid token from https://usepromptr.com/account',
+        'Invalid Promptr token. Please check your token.',
         'Enter New Token',
         'Get Token'
       );
@@ -119,7 +120,7 @@ export async function checkUserAccess(): Promise<boolean> {
       if (action === 'Enter New Token') {
         return await checkUserAccess(); // Recursive call to re-enter token
       } else if (action === 'Get Token') {
-        vscode.env.openExternal(vscode.Uri.parse('https://usepromptr.com/account'));
+        vscode.env.openExternal(vscode.Uri.parse('https://promptr.dev/dashboard'));
       }
     }
     
@@ -133,7 +134,7 @@ export async function checkUserAccess(): Promise<boolean> {
 export async function enterAccessTokenCommand(): Promise<void> {
   const token = await vscode.window.showInputBox({
     prompt: 'Enter your Promptr access token',
-    placeHolder: 'Get your token from https://usepromptr.com/account',
+    placeHolder: 'Get your token from https://promptr.dev/dashboard',
     password: true,
     ignoreFocusOut: true
   });
@@ -154,12 +155,10 @@ export async function enterAccessTokenCommand(): Promise<void> {
       await storeToken(token);
       await storeLastKnownStatus(result.status || 'unknown');
       vscode.window.showInformationMessage(
-        `✅ Promptr token validated! Welcome ${result.user_email} (${result.status})`
+        `✅ Promptr token validated! Welcome ${result.email} (${result.status})`
       );
     } else {
-      vscode.window.showErrorMessage(
-        '❌ Invalid token: Please check your access token and try again. You can get a valid token from https://usepromptr.com/account'
-      );
+      vscode.window.showErrorMessage(`❌ Invalid token: ${result.message}`);
     }
   });
 }
