@@ -1,0 +1,10 @@
+node_modules
+.vscode
+*.vsix
+.env
+*.log
+*.map
+test
+src
+webpack.config.js
+setup-env.js 

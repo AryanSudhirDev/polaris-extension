@@ -4,6 +4,11 @@
   "description": "Turn vague ideas into precise, high-quality prompts.",
   "version": "1.2.5",
   "publisher": "aryansudhir",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AryanSudhirDev/polaris-extension"
+  },
   "engines": {
     "vscode": "^1.86.0"
   },
