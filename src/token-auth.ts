@@ -198,6 +198,7 @@ let extensionContext: vscode.ExtensionContext | undefined;
 
 export function setExtensionContext(context: vscode.ExtensionContext) {
   extensionContext = context;
+  console.log('[DEBUG] setExtensionContext called, context set:', !!context);
 }
 
 function getExtensionContext(): vscode.ExtensionContext | undefined {
@@ -220,8 +221,11 @@ async function storeToken(token: string): Promise<void> {
 export async function getStoredToken(): Promise<string | undefined> {
   const context = getExtensionContext();
   if (context) {
-    return await context.secrets.get('promptr.accessToken');
+    const token = await context.secrets.get('promptr.accessToken');
+    console.log('[DEBUG] getStoredToken called, token:', token);
+    return token;
   }
+  console.log('[DEBUG] getStoredToken called, but context is undefined');
   return undefined;
 }
 

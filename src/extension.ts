@@ -22,6 +22,8 @@ interface CodebaseContext {
 }
 
 let cachedCodebaseContext: CodebaseContext | null = null;
+let usageCheckCounter = 0;
+let lastUsageAllowed: boolean | null = null;
 
 /**
  * Analyze the current workspace to understand the codebase structure and tech stack
@@ -313,9 +315,12 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
     
-    // Check usage limits before proceeding
-    const usageAllowed = await checkUsageLimit(token, log);
-    if (!usageAllowed) {
+    // Optimized usage check: only check every 10 requests
+    if (usageCheckCounter % 10 === 0 || lastUsageAllowed === null) {
+      lastUsageAllowed = await checkUsageLimit(token, log);
+    }
+    usageCheckCounter++;
+    if (!lastUsageAllowed) {
       log.appendLine('❌ Usage limit reached - request blocked');
       return;
     }
@@ -781,7 +786,7 @@ async function checkUsageLimit(token: string, log: vscode.OutputChannel): Promis
         headers: {
           'Content-Type': 'application/json',
           'apikey': supabaseAnonKey,
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
           'Content-Length': Buffer.byteLength(postData)
         }
       };

@@ -4,6 +4,7 @@
   "description": "Promptr - AI-powered prompt refinement for VS Code/Cursor. Transform vague ideas into precise, high-quality prompts with ⌘⇧G. Features temperature control, custom context, and auto-paste functionality.",
   "keywords": [
     "promptr",
+    "Promptr",
     "ai",
     "prompt",
     "generation",
@@ -13,7 +14,7 @@
     "text",
     "productivity"
   ],
-  "version": "1.3.3",
+  "version": "1.3.4",
   "publisher": "aryansudhir",
   "license": "MIT",
   "repository": {
@@ -30,6 +31,7 @@
   ],
   "tags": [
     "promptr",
+    "Promptr",
     "ai",
     "prompt",
     "generation",
