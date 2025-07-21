@@ -770,6 +770,7 @@ async function checkUsageLimit(token: string, log: vscode.OutputChannel): Promis
 
     const url = `${supabaseUrl}/functions/v1/check-usage-limit`;
     const postData = JSON.stringify({ token });
+    log.appendLine(`🔑 [DEBUG] Sending token to usage check: ${token}`);
 
     return new Promise((resolve, reject) => {
       const options = {
@@ -780,7 +781,7 @@ async function checkUsageLimit(token: string, log: vscode.OutputChannel): Promis
         headers: {
           'Content-Type': 'application/json',
           'apikey': supabaseAnonKey,
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Length': Buffer.byteLength(postData)
         }
       };
