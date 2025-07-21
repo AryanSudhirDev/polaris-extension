@@ -2,7 +2,7 @@
   "name": "promptr",
   "displayName": "Promptr",
   "description": "Turn vague ideas into precise, high-quality prompts.",
-  "version": "1.2.5",
+  "version": "1.3.1",
   "publisher": "aryansudhir",
   "license": "MIT",
   "repository": {

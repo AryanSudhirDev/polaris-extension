@@ -11,25 +11,27 @@ export interface TokenValidationResponse {
  * Validates a Promptr access token against the backend
  */
 export async function validateAccessToken(token: string): Promise<TokenValidationResponse> {
-  const config = vscode.workspace.getConfiguration('promptr');
-  const backendUrl = config.get<string>('backendApiUrl', 'https://xzrajxmrwumzzbnlozzr.supabase.co/functions/v1/');
-  const endpoint = `${backendUrl}promptr-token-check`;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
   
-  // Use service role key because the edge function has verify_jwt enabled
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return {
+      access: false,
+      message: 'Supabase configuration missing'
+    };
+  }
+  
+  const endpoint = `${supabaseUrl}/functions/v1/validate-token`;
   
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Only the anon key is required for invoking edge functions.
-        // Deliberately avoid sending the service-role key so the backend can accurately
-        // reject invalid or expired user tokens.
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`
       },
-      body: JSON.stringify({ promptr_token: token })
+      body: JSON.stringify({ token })
     });
 
     if (!response.ok) {
@@ -40,7 +42,24 @@ export async function validateAccessToken(token: string): Promise<TokenValidatio
 
     const json = await response.json();
     console.log('Promptr token-check response:', json);
-    return json;
+    
+    // Handle validate-token response format
+    if (json.access) {
+      // For free plan users, we want to show them as 'active' but with usage limits
+      const status = json.status === 'trialing' ? 'active' : json.status;
+      return {
+        access: true,
+        status: status,
+        user_email: json.email || 'user@example.com',
+        message: 'Token validated successfully'
+      };
+    } else {
+      return {
+        access: false,
+        status: json.status || 'inactive',
+        message: json.message || 'Invalid token'
+      };
+    }
   } catch (error: any) {
     console.error('Token validation failed:', error);
     return {
@@ -83,7 +102,9 @@ export async function checkUserAccess(): Promise<boolean> {
   
   const result = await validateAccessToken(token);
   
-  if (result.access && (result.status === 'active' || result.status === 'trialing')) {
+      console.log(`🔍 Token validation result: access=${result.access}, status=${result.status || 'unknown'}, message=${result.message || 'no message'}`);
+  
+  if (result.access) {
     console.log(`✅ Promptr access granted for ${result.user_email} (${result.status})`);
     
     // Show success message for first-time setup or status changes
@@ -92,7 +113,7 @@ export async function checkUserAccess(): Promise<boolean> {
       vscode.window.showInformationMessage(
         `✨ Promptr ${result.status} subscription verified for ${result.user_email}`
       );
-      await storeLastKnownStatus(result.status);
+      await storeLastKnownStatus(result.status || 'unknown');
     }
     
     return true;
@@ -161,6 +182,9 @@ export async function enterAccessTokenCommand(): Promise<void> {
       vscode.window.showInformationMessage(
         `✅ Promptr token validated! Welcome ${result.user_email} (${result.status})`
       );
+      
+      // Trigger plan status refresh
+      vscode.commands.executeCommand('promptr.refreshStatus');
     } else {
       vscode.window.showErrorMessage(
         '❌ Invalid token: Please check your access token and try again. You can get a valid token from https://usepromptr.com/account'
@@ -193,7 +217,7 @@ async function storeToken(token: string): Promise<void> {
 /**
  * Get stored token from VS Code's secret storage
  */
-async function getStoredToken(): Promise<string | undefined> {
+export async function getStoredToken(): Promise<string | undefined> {
   const context = getExtensionContext();
   if (context) {
     return await context.secrets.get('promptr.accessToken');

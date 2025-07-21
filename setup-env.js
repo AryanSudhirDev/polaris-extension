@@ -57,7 +57,7 @@ async function setupEnvironment() {
   // OpenAI API Key
   const openaiKey = await question('OpenAI API Key (for original functionality): ');
   
-  // Supabase URL
+  // Supabase URLz
   const supabaseUrl = await question('Supabase URL (e.g., https://your-project.supabase.co): ');
   
   // Supabase Anon Key

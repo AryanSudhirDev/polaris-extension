@@ -8,7 +8,7 @@ import { promisify } from 'util';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { checkUserAccess, setExtensionContext, enterAccessTokenCommand } from './token-auth';
+import { checkUserAccess, setExtensionContext, enterAccessTokenCommand, getStoredToken } from './token-auth';
 
 
 const execAsync = promisify(exec);
@@ -305,6 +305,26 @@ export function activate(context: vscode.ExtensionContext) {
     
     log.appendLine('✅ Authentication successful - proceeding with prompt generation');
     
+    // Get the validated token for usage checking
+    const token = await getStoredToken();
+    if (!token) {
+      log.appendLine('❌ No access token found after authentication');
+      vscode.window.showErrorMessage('Authentication error. Please try again.');
+      return;
+    }
+    
+    // Check usage limits before proceeding
+    const usageAllowed = await checkUsageLimit(token, log);
+    if (!usageAllowed) {
+      log.appendLine('❌ Usage limit reached - request blocked');
+      return;
+    }
+    
+    log.appendLine('✅ Usage check passed - proceeding with AI request');
+    
+    // Refresh status bar after usage check
+    await refreshStatusBar();
+    
     const editor = vscode.window.activeTextEditor;
     let selectedText = '';
     let originalSelection: vscode.Selection | undefined;
@@ -340,18 +360,11 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    // Quick override-phrase heuristic
+    // Quick override-phrase heuristic – silently block if suspicious
     if (containsOverridePhrases(selectedText)) {
-      const proceed = await vscode.window.showWarningMessage(
-        'Promptr: Selected text may attempt to override safety instructions. Continue?',
-        { modal: false },
-        'Send Anyway',
-        'Cancel'
-      );
-      if (proceed !== 'Send Anyway') {
-        log.appendLine('User cancelled due to suspicious phrases');
-        return;
-      }
+      log.appendLine('🚫 Suspicious prompt blocked (override phrases detected)');
+      // No UI prompt shown to the user – simply abort the command
+      return;
     }
 
     // Log what we're about to send to AI
@@ -444,25 +457,97 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  /* ----------------- Temperature Status Bar ----------------- */
-  const temperatureStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
-  temperatureStatus.command = 'promptr.showMenu';
+  /* ----------------- Status Bar Item ----------------- */
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
+  statusBarItem.command = 'promptr.showMenu';
 
-  function refreshTemperatureStatus() {
+  async function refreshStatusBar() {
     const temp = getConfig().get<number>('temperature', 0.3);
-    temperatureStatus.text = `Promptr 🔥 ${temp.toFixed(1)}`;
-    temperatureStatus.tooltip = 'Promptr options';
-    temperatureStatus.show();
+    const token = await getStoredToken();
+    
+    if (!token) {
+      statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)}`;
+      statusBarItem.tooltip = 'Promptr options';
+      statusBarItem.show();
+      return;
+    }
+
+    try {
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)}`;
+        statusBarItem.tooltip = 'Promptr options';
+        statusBarItem.show();
+        return;
+      }
+
+      const postData = JSON.stringify({ token });
+      const options = {
+        hostname: new URL(supabaseUrl).hostname,
+        port: 443,
+        path: '/functions/v1/check-usage-limit',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+
+      const response = await new Promise<UsageCheckResponse>((resolve, reject) => {
+        const req = https.request(options, (res) => {
+          let data = '';
+          res.on('data', (chunk) => data += chunk);
+          res.on('end', () => {
+            if (res.statusCode === 200) {
+              try {
+                resolve(JSON.parse(data));
+              } catch {
+                reject(new Error('Invalid response'));
+              }
+            } else {
+              reject(new Error(`HTTP ${res.statusCode}`));
+            }
+          });
+        });
+        req.on('error', reject);
+        req.setTimeout(10000); // Match the timeout of checkUsageLimit
+        req.write(postData);
+        req.end();
+      });
+
+      if (response.plan === 'pro') {
+        statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)} Pro ✨`;
+        statusBarItem.tooltip = 'Promptr options - Pro plan - unlimited requests';
+      } else {
+        const usage = response.current_usage || 0;
+        const limit = response.limit || 100;
+        statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)} Free ${usage}/${limit}`;
+        statusBarItem.tooltip = `Promptr options - Free plan - ${usage}/${limit} requests used`;
+      }
+      statusBarItem.show();
+    } catch (err) {
+      statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)}`;
+      statusBarItem.tooltip = 'Promptr options';
+      statusBarItem.show();
+    }
   }
 
-  refreshTemperatureStatus();
+  // Refresh status bar on startup
+  refreshStatusBar().catch(() => {
+    // Silently fail if status can't be loaded on startup
+  });
 
   /* -------------- Command: Promptr Menu --------------- */
   const showMenuCmd = vscode.commands.registerCommand('promptr.showMenu', async () => {
     const pick = await vscode.window.showQuickPick([
       { label: '$(flame) Set Temperature', action: 'temperature' },
       { label: '$(pencil) Edit Custom Context', action: 'context' },
-      { label: '$(key) Enter Access Token', action: 'token' }
+      { label: '$(key) Enter Access Token', action: 'token' },
+      { label: '$(refresh) Refresh Status', action: 'refresh' }
     ], { placeHolder: 'Promptr Options' });
 
     if (!pick) { return; }
@@ -472,6 +557,9 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.commands.executeCommand('promptr.setCustomContext');
     } else if (pick.action === 'token') {
       vscode.commands.executeCommand('promptr.enterAccessToken');
+    } else if (pick.action === 'refresh') {
+      await refreshStatusBar();
+      vscode.window.showInformationMessage('Status refreshed');
     }
   });
 
@@ -498,12 +586,17 @@ export function activate(context: vscode.ExtensionContext) {
     await enterAccessTokenCommand();
   });
 
-  context.subscriptions.push(temperatureStatus, showMenuCmd, setCustomContextCmd, enterTokenCmd);
+  // Register the refresh status command
+  const refreshStatusCmd = vscode.commands.registerCommand('promptr.refreshStatus', async () => {
+    await refreshStatusBar();
+  });
+
+  context.subscriptions.push(statusBarItem, showMenuCmd, setCustomContextCmd, enterTokenCmd, refreshStatusCmd);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('promptr.temperature')) {
-        refreshTemperatureStatus();
+        refreshStatusBar();
       }
     })
   );
@@ -512,7 +605,12 @@ export function activate(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration('promptr');
   if (config.get('autoValidate', true)) {
     // Silently check access on startup (don't show errors)
-    checkUserAccess().catch(() => {
+    checkUserAccess().then(() => {
+      // If access check succeeds, refresh status bar
+      refreshStatusBar().catch(() => {
+        // Silently fail if status can't be loaded
+      });
+    }).catch(() => {
       // Silently fail - user will be prompted when they use commands
     });
   }
@@ -533,7 +631,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     await getConfig().update('temperature', parseFloat(pick.label), vscode.ConfigurationTarget.Global);
-    refreshTemperatureStatus();
+    refreshStatusBar();
   });
 
   // Retrieve selected text: tries editor first, otherwise auto-copies and falls back to clipboard
@@ -647,6 +745,104 @@ function generateSentinel(): string {
 interface AIResult {
   response: string;
   sentinel: string;
+}
+
+interface UsageCheckResponse {
+  allowed: boolean;
+  plan: string;
+  current_usage?: number;
+  limit?: number;
+  message: string;
+}
+
+/**
+ * Check usage limits before making AI requests
+ */
+async function checkUsageLimit(token: string, log: vscode.OutputChannel): Promise<boolean> {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      log.appendLine('❌ Supabase configuration missing');
+      return false;
+    }
+
+    const url = `${supabaseUrl}/functions/v1/check-usage-limit`;
+    const postData = JSON.stringify({ token });
+
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: new URL(supabaseUrl).hostname,
+        port: 443,
+        path: '/functions/v1/check-usage-limit',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+
+      log.appendLine(`🔍 Checking usage limits for token...`);
+      
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', async () => {
+          log.appendLine(`Usage check response: ${res.statusCode}`);
+          
+          if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+            log.appendLine(`Usage check error: ${data.substring(0, 500)}`);
+            reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+            return;
+          }
+          
+          try {
+            const response: UsageCheckResponse = JSON.parse(data);
+            log.appendLine(`Usage check result: ${response.allowed ? 'ALLOWED' : 'BLOCKED'} (${response.plan} plan)`);
+            
+            if (!response.allowed) {
+              const message = response.message || 'Free plan limit reached (100 requests/month). Upgrade to Pro for unlimited requests.';
+              const action = await vscode.window.showErrorMessage(
+                message,
+                'Upgrade to Pro',
+                'Cancel'
+              );
+              
+              if (action === 'Upgrade to Pro') {
+                vscode.env.openExternal(vscode.Uri.parse('https://usepromptr.com/pricing'));
+              }
+            }
+            
+            resolve(response.allowed);
+          } catch (err) {
+            log.appendLine(`Usage check JSON parse error: ${err}`);
+            reject(err);
+          }
+        });
+      });
+
+      req.on('error', (err) => {
+        log.appendLine(`Usage check request error: ${err.message}`);
+        reject(err);
+      });
+
+      req.on('timeout', () => {
+        log.appendLine('Usage check request timeout');
+        req.destroy();
+        reject(new Error('Usage check timeout'));
+      });
+
+      req.setTimeout(10000); // 10 second timeout
+      req.write(postData);
+      req.end();
+    });
+  } catch (err: any) {
+    log.appendLine(`Usage check failed: ${err.message}`);
+    return false;
+  }
 }
 
 async function aiCall(input: string, apiBase: string | undefined, apiKey: string, log: vscode.OutputChannel): Promise<AIResult> {
