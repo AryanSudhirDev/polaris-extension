@@ -1,8 +1,19 @@
 {
   "name": "promptr",
   "displayName": "Promptr",
-  "description": "Turn vague ideas into precise, high-quality prompts.",
-  "version": "1.3.1",
+  "description": "Promptr - AI-powered prompt refinement for VS Code/Cursor. Transform vague ideas into precise, high-quality prompts with ⌘⇧G. Features temperature control, custom context, and auto-paste functionality.",
+  "keywords": [
+    "promptr",
+    "ai",
+    "prompt",
+    "generation",
+    "refinement",
+    "openai",
+    "gpt",
+    "text",
+    "productivity"
+  ],
+  "version": "1.3.2",
   "publisher": "aryansudhir",
   "license": "MIT",
   "repository": {
@@ -13,7 +24,20 @@
     "vscode": "^1.86.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Productivity",
+    "AI",
+    "Text Processing"
+  ],
+  "tags": [
+    "promptr",
+    "ai",
+    "prompt",
+    "generation",
+    "productivity",
+    "text",
+    "openai",
+    "gpt"
   ],
   "activationEvents": [
     "onStartupFinished"
