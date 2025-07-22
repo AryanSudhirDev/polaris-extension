@@ -818,7 +818,7 @@ async function checkUsageLimit(token: string, log: vscode.OutputChannel): Promis
             log.appendLine(`Usage check result: ${response.allowed ? 'ALLOWED' : 'BLOCKED'} (${response.plan} plan)`);
             
             if (!response.allowed) {
-              const message = response.message || 'Free plan limit reached (100 requests/month). Upgrade to Pro for unlimited requests.';
+              const message = response.message || 'Free plan limit reached (50 requests/month). Upgrade to Pro for unlimited requests.';
               const action = await vscode.window.showErrorMessage(
                 message,
                 'Upgrade to Pro',
