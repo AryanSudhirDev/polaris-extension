@@ -24,6 +24,8 @@ interface CodebaseContext {
 let cachedCodebaseContext: CodebaseContext | null = null;
 let usageCheckCounter = 0;
 let lastUsageAllowed: boolean | null = null;
+let authStatusCache: boolean | null = null;
+let lastAuthCheck = 0;
 
 /**
  * Analyze the current workspace to understand the codebase structure and tech stack
@@ -120,7 +122,7 @@ async function analyzeCodebase(log: vscode.OutputChannel): Promise<CodebaseConte
 
     // Cache the result for 30 seconds to speed up subsequent calls
     cachedCodebaseContext = context;
-    setTimeout(() => { cachedCodebaseContext = null; }, 30000);
+    setTimeout(() => { cachedCodebaseContext = null; }, 300000); // 5 minutes
 
     return context;
   } catch (err: any) {
@@ -298,9 +300,14 @@ export function activate(context: vscode.ExtensionContext) {
   const generatePromptCmd = vscode.commands.registerCommand('promptr.generatePrompt', async () => {
     log.appendLine('=== Promptr Generate Prompt Command Started ===');
     
-    // Check authentication first
-    const hasAccess = await checkUserAccess();
-    if (!hasAccess) {
+    // Check authentication first (with caching)
+    const now = Date.now();
+    if (authStatusCache === null || now - lastAuthCheck > 300000) { // 5 minute cache
+      authStatusCache = await checkUserAccess();
+      lastAuthCheck = now;
+    }
+    
+    if (!authStatusCache) {
       log.appendLine('❌ Authentication failed - user was notified');
       return; // User was already notified of the issue
     }
@@ -311,7 +318,7 @@ export function activate(context: vscode.ExtensionContext) {
     const token = await getStoredToken();
     if (!token) {
       log.appendLine('❌ No access token found after authentication');
-      vscode.window.showErrorMessage('Authentication error. Please try again.');
+      vscode.window.showErrorMessage('Please enter your Promptr access token to continue.');
       return;
     }
     
@@ -327,8 +334,10 @@ export function activate(context: vscode.ExtensionContext) {
     
     log.appendLine('✅ Usage check passed - proceeding with AI request');
     
-    // Refresh status bar after usage check
-    await refreshStatusBar();
+    // Refresh status bar asynchronously (don't block main flow)
+    refreshStatusBar().catch(() => {
+      // Silently fail if status can't be loaded
+    });
     
     const editor = vscode.window.activeTextEditor;
     let selectedText = '';
@@ -361,7 +370,7 @@ export function activate(context: vscode.ExtensionContext) {
     
     if (!selectedText) {
       log.appendLine('💥 NO TEXT FOUND');
-      vscode.window.showErrorMessage('Please select some text first.');
+      vscode.window.showErrorMessage('Please select some text to refine first.');
       return;
     }
 
@@ -388,7 +397,7 @@ export function activate(context: vscode.ExtensionContext) {
     const apiKey = process.env.PROMPTR_MASTER_KEY;
     
     if (!apiKey) {
-      vscode.window.showErrorMessage('Promptr: Service temporarily unavailable. Please try again later.');
+      vscode.window.showErrorMessage('Promptr service is temporarily unavailable. Please try again later.');
       log.appendLine('No API key available in build-time environment');
       return;
     }
@@ -412,12 +421,12 @@ export function activate(context: vscode.ExtensionContext) {
         const leaked = aiResponse.includes(sentinel) || /### CORE OBJECTIVE ###|### USER-PROVIDED CONTEXT ###/i.test(aiResponse);
         if (leaked) {
           log.appendLine('🚫 AI response contained internal prompt markers – blocked.');
-          vscode.window.showWarningMessage('AI response was blocked because it exposed internal instructions.');
+          vscode.window.showWarningMessage('AI response was blocked for security reasons.');
           return; // stop before any clipboard or editor changes
         }
       } catch (err: any) {
         log.appendLine(`AI call failed: ${err?.message ?? err}`);
-        vscode.window.showErrorMessage(err.message || 'AI request failed');
+        vscode.window.showErrorMessage('AI request failed. Please try again.');
         return;
       }
 
@@ -451,7 +460,7 @@ export function activate(context: vscode.ExtensionContext) {
           log.appendLine('Text replaced, re-selected, and copied to clipboard');
         } else {
           log.appendLine('Edit operation failed');
-          vscode.window.showErrorMessage('Failed to replace text');
+          vscode.window.showErrorMessage('Failed to replace text. Please try again.');
         }
       } else {
         // No editor context – automatically paste into the front-most app
@@ -525,13 +534,11 @@ export function activate(context: vscode.ExtensionContext) {
       });
 
       if (response.plan === 'pro') {
-        statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)} Pro ✨`;
+        statusBarItem.text = `Promptr �� ${temp.toFixed(1)}`;
         statusBarItem.tooltip = 'Promptr options - Pro plan - unlimited requests';
       } else {
-        const usage = response.current_usage || 0;
-        const limit = response.limit || 100;
-        statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)} Free ${usage}/${limit}`;
-        statusBarItem.tooltip = `Promptr options - Free plan - ${usage}/${limit} requests used`;
+        statusBarItem.text = `Promptr 🔥 ${temp.toFixed(1)}`;
+        statusBarItem.tooltip = `Promptr options - Free plan`;
       }
       statusBarItem.show();
     } catch (err) {
@@ -666,14 +673,15 @@ export function activate(context: vscode.ExtensionContext) {
   const WELCOME_KEY = 'promptrWelcomeShown';
   if (!context.globalState.get<boolean>(WELCOME_KEY)) {
     vscode.window.showInformationMessage(
-      '🎉 Promptr is ready! Fine-tune AI with Temperature or add project context for better answers.',
-      'Set Temperature 🔥',
-      'Set Custom Context ✍️'
+      '🎉 Welcome to Promptr! Get started by entering your access token.',
+      'Enter Access Token 🔑',
+      'Get Token from usepromptr.com',
+      'Skip for Now'
     ).then(selection => {
-      if (selection?.startsWith('Set Temperature')) {
-        vscode.commands.executeCommand('promptr.setTemperature');
-      } else if (selection?.startsWith('Set Custom Context')) {
-        vscode.commands.executeCommand('promptr.setCustomContext');
+      if (selection?.startsWith('Enter Access Token')) {
+        vscode.commands.executeCommand('promptr.enterAccessToken');
+      } else if (selection?.startsWith('Get Token')) {
+        vscode.env.openExternal(vscode.Uri.parse('https://usepromptr.com/account'));
       }
     });
     context.globalState.update(WELCOME_KEY, true);

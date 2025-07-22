@@ -86,7 +86,7 @@ export async function checkUserAccess(): Promise<boolean> {
     });
     
     if (!inputToken) {
-      vscode.window.showErrorMessage('Promptr access token is required to use this feature.');
+      vscode.window.showErrorMessage('Please enter your Promptr access token to continue.');
       return false;
     }
     
@@ -125,7 +125,7 @@ export async function checkUserAccess(): Promise<boolean> {
     
     if (result.status === 'inactive') {
       const action = await vscode.window.showErrorMessage(
-        'Your Promptr subscription is inactive. Please update your payment method.',
+        'Your Promptr subscription is inactive. Please update your payment method to continue using the service.',
         'Open Billing',
         'Enter New Token'
       );
@@ -137,7 +137,7 @@ export async function checkUserAccess(): Promise<boolean> {
       }
     } else {
       const action = await vscode.window.showErrorMessage(
-        '❌ Invalid token: Please check your access token and try again. You can get a valid token from https://usepromptr.com/account',
+        'Invalid access token. Please check your token and try again. You can get a valid token from usepromptr.com/account',
         'Enter New Token',
         'Get Token'
       );
@@ -187,7 +187,7 @@ export async function enterAccessTokenCommand(): Promise<void> {
       vscode.commands.executeCommand('promptr.refreshStatus');
     } else {
       vscode.window.showErrorMessage(
-        '❌ Invalid token: Please check your access token and try again. You can get a valid token from https://usepromptr.com/account'
+        'Invalid access token. Please check your token and try again. You can get a valid token from usepromptr.com/account'
       );
     }
   });
