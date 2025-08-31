@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.2] - 2025-08-27
+## [1.4.3] - 2025-08-27
 
 ### Added
 - **Premium Bypass Tokens**: 30 cryptographically secure premium access tokens
