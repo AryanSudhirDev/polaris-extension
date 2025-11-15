@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.4.6] - 2025-09-01
+
+### Changed
+- Version bump and release packaging for 1.4.6.
+- Minor metadata tidy-up.
+
+---
+
+## [1.4.5] - 2025-08-31
+
+### Changed
+- Optimized Marketplace metadata: updated `displayName`, categories to `Productivity`, and refined `keywords` (removed unsupported `tags`).
+- README now front-loads descriptor and search keywords for better indexing.
+
+### Added
+- One-time "Rate Promptr" prompt after first successful use to improve discoverability (opt-in, non-modal).
+
+---
+
 ## [1.4.3] - 2025-08-27
 
 ### Added

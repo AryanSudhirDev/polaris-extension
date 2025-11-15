@@ -1,45 +1,64 @@
-# Promptr – AI-Powered VS Code Extension
+# Promptr
 
-Transform your text with AI right inside VS Code/Cursor. Select text, hit ⌘⇧G, and get instant AI-powered refinements.
+AI-powered prompt refinement for VS Code and Cursor. Transform rough ideas into polished, detailed prompts.
 
-## Quick Start
-1. Install extension
-2. Hit ⌘⇧G with text selected
-3. Watch your text transform
+## Getting Started
 
-
+1. Install the extension
+2. Get your access token from [usepromptr.com/account](https://usepromptr.com/account)
+3. Select text in your editor or chat interface
+4. Press `⌘⇧G` (Mac) or `Ctrl+Shift+G` (Windows/Linux)
 
 ## Features
-* AI-powered prompt refinement with a single hot-key
-* Status-bar 🔥 slider to adjust model creativity (temperature)
-* Custom project context injection per workspace
-* Auto-copy / auto-paste so results land on your clipboard (or replace selection) instantly
-* One-time welcome tip to surface options; zero-clutter UI (Prompt Library removed)
-* Lightweight injection-guard to block prompts that leak internal instructions
-* Works out-of-the-box – no OpenAI key required
 
-## Settings
+- **Quick refinement** – Single hotkey transforms selected text into detailed prompts
+- **Temperature control** – Adjust AI creativity from deterministic (0) to varied (1)
+- **Project-aware** – Auto-detects your tech stack and provides relevant context
+- **Custom context** – Add project-specific instructions that apply to every prompt
+- **Clipboard integration** – Results automatically copied; can replace selection or paste elsewhere
+- **Free & Pro plans** – Free tier: 50 requests/month; Pro: unlimited
+
+## Usage
+
+### Basic Usage
+1. Select text anywhere in VS Code/Cursor
+2. Press `⌘⇧G` / `Ctrl+Shift+G`
+3. AI refines it into a detailed prompt
+
+### Status Bar
+Click the `Promptr 🔥 0.3` status bar item to:
+- Adjust temperature
+- Set custom context
+- Enter access token
+- Check usage status
+
+## Configuration
+
 | Setting | Default | Description |
-| --- | --- | --- |
-| `promptr.temperature` | `0.3` | Controls randomness / creativity (0 → deterministic) |
-| `promptr.customContext` | `""` | Extra context prepended to every prompt, per-workspace |
-| `promptr.apiBase` | `https://api.openai.com` | Override backend (rarely needed) |
+|---------|---------|-------------|
+| `promptr.temperature` | `0.3` | Controls output randomness (0-1) |
+| `promptr.customContext` | `""` | Additional context for all prompts |
+| `promptr.apiBase` | `https://api.openai.com` | API endpoint (advanced) |
 
-## Hot-keys / UI
-| Action | Default |
-| --- | --- |
-| Generate Prompt | `⌘⇧G` / `Ctrl+Shift+G` |
-| Options Menu (Temperature / Context) | click the `Promptr 🔥 x.x` status-bar item |
+## Commands
 
-## ⌨️ Commands
-* **Promptr: Generate Prompt** – main action (hot-key above)
-* **Promptr: Set Temperature** – also accessible via status-bar menu
-* **Promptr: Set Custom Context** – likewise via menu
+- `Promptr: Generate Prompt` – Refine selected text
+- `Promptr: Set Temperature` – Adjust creativity level
+- `Promptr: Set Custom Context` – Add project context
+- `Promptr: Enter Access Token` – Update authentication
 
-## 💡 Tips
-• The extension auto-detects your workspace language / framework and injects that context automatically.
-• First time you install, you'll get a toast pointing you to the Temperature & Context options.
-• Holding a large selection? Promptr replaces it in-place; otherwise it pastes below and copies to your clipboard.
+## Plans
+
+**Free**: 50 AI requests per month  
+**Pro**: Unlimited requests
+
+Get your token at [usepromptr.com/account](https://usepromptr.com/account)
+
+## Support
+
+- Issues: [GitHub Issues](https://github.com/AryanSudhirDev/polaris-extension/issues)
+- Questions: Visit [usepromptr.com](https://usepromptr.com)
 
 ---
-Happy prompting! ✨ 
+
+MIT License
