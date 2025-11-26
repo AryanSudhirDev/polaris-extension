@@ -1,0 +1,118 @@
+# PROMPTR PREMIUM ACCESS TOKENS
+
+**Generated:** 60 premium bypass tokens for unlimited Promptr access
+
+## 🎯 Features
+- ✅ **Unlimited AI requests** - No usage caps
+- ✅ **Premium plan features** - Full feature access
+- ✅ **No authentication required** - Works without signup
+- ✅ **Instant activation** - Ready to use immediately
+- ✅ **All Promptr features unlocked** - Complete premium experience
+
+## 📋 Token List
+
+**Copy any token below and use it in Promptr:**
+
+```
+
+PROMPTR_PREMIUM_m9PsptMLoWK4Ls_VmLHzJ4Wc8A0M8TXOySPEdqdc_KE
+PROMPTR_PREMIUM_AL7yc1mI6cEkxmRMVchlT--_5d__6OHs2KDV1Sf92Yg
+PROMPTR_PREMIUM_VhcWcX0HAIZFohVJPZa7tJ6CBd78sX8gOqIOFPy4r0o
+PROMPTR_PREMIUM_vTM5gjEmgMX0Y0s3mRpCr-kvKws6JClLW1bhKbK6EU8
+PROMPTR_PREMIUM_NmNgSrUin-1pn0E39Tzgq9M13NSygJutkhtN7meiucE
+PROMPTR_PREMIUM_eFuGY9Z0wfZ37We6rCjswJ8gX3tEEyo2ws4AVUBUjjE
+PROMPTR_PREMIUM_GD0KgGXToXziENHtSejhmowb3zG1mOl2IXJcCtllfFI
+PROMPTR_PREMIUM_U_1oODvVdhhtkyUXeFj4X7CUtbDLpfnfZk7EvMWfJiI
+PROMPTR_PREMIUM_fw8gF5vB1rlqm4JY8l18wHQn-XbIAFGOa0ieM-_9W24
+PROMPTR_PREMIUM_Xf-FcQ3dqb7BXBT0bogR8M_oGfgBGZ7VyqPtObh_Ncg
+PROMPTR_PREMIUM_fqYZR8t19AWs6FaD8Sttf0yfiUCRjqka2vDTOEgbAtY
+PROMPTR_PREMIUM_1flPAp5-qgqrD709lpwkWnZVdSI_Udn5lQUHvvCqdGg
+PROMPTR_PREMIUM_Q1Ww6sYqEo56CehclfEgH2LWNQ4lCLgMifiAS04p9ms
+PROMPTR_PREMIUM_T6UW7anMYvmwyAMk8uAaqyUIEvz2MMIsc4q-AQdbo00
+PROMPTR_PREMIUM_22DOjgcaMrcsNA7o0L3II8L7KQlMqi3Cx6As7QSliT8
+PROMPTR_PREMIUM_8H9oOPSgdIQZLrXsxbaUVp40BAOORGEs6KUrprsGHOc
+PROMPTR_PREMIUM_3NkUD85OWxuK_zuzj0kTNrsPgTESgM_-GTOAIS4_iD8
+PROMPTR_PREMIUM_gn4gKEtwqzqfULZEH3vGgdYoHg-7mBj3-sMSoNxFFHM
+PROMPTR_PREMIUM_puPeS0Gr9pXTxjAjpvJE8lpCBAnkYkwF0akXZQnKPro
+PROMPTR_PREMIUM_6j33fde7JF6k-tZG_z4j1VN2wKXiIip4WSuWs6sNCV4
+PROMPTR_PREMIUM__6w-wsvPjHwtL7ECfRPsA6iq8wM-PXuznwlDonzD_DE
+PROMPTR_PREMIUM_67vOOO1hTIWEFzJVP2RBYHfrAODU4UEyjjda0b_ccZo
+PROMPTR_PREMIUM_IeeFxfdTQMD7YOnT-tL6L-osjwghwLvkzi1w60QUygc
+PROMPTR_PREMIUM_YNf8rN1NsQ7xE4WwI5iViLrpAzOqBRquUR8Uqk4wXGM
+PROMPTR_PREMIUM_pek4BsQ1pcs-ezXBre0gKv7OWJqjiHxch9-yO7qW1fk
+PROMPTR_PREMIUM_2ixU_x8dCuPuYS3xNwvk1U5rKRZkgu3oVL7A_WWT33o
+PROMPTR_PREMIUM_e6t0L4u3pos31UoCuCxgMqBIqTYTp_suThB1-PkPyKc
+PROMPTR_PREMIUM_Pvvt4gPZP6-56Z5v13XXhre9GkYaodW5-gxCRlsbeqI
+PROMPTR_PREMIUM_yMCKfUKPvFLoLXbjhsf3PZOjKm92BojDltacikXGEHc
+
+PROMPTR_PREMIUM_LkQ7eX9G2zS4pV8mT1aC6nR3yW0dH5uJ7bK2fM8oPiQ
+PROMPTR_PREMIUM_R9nV2pL7kT1cX6sY3mB8dF0aH5gJ2wQ4zU8iO1rNcE
+PROMPTR_PREMIUM_qW8zX3cV6bN1mT4pR7yL2kJ9hG0aF5dS8uO3iP1vMe
+PROMPTR_PREMIUM_Ab7Y2kQ9pL4nV1tX6cR3mF8dH0aG5jS2uW8iO1zPe
+PROMPTR_PREMIUM_Nx6C1vB7kL2mT9pR4yJ8aH0fG5dS3uW8iO1zQeV2n
+PROMPTR_PREMIUM_Ty9P2nL7kC1xV6sR3mB8fD0aH5gJ2wQ4zU8iO1rNe
+PROMPTR_PREMIUM_Gh5J2wQ4zU8iO1rN9vB2kL7mT1cX6sY3pF8dA0eHg
+PROMPTR_PREMIUM_Vm8T1aC6nR3yW0dH5uJ7bK2fM8oPqL4xZ9sE2iY7r
+PROMPTR_PREMIUM_Kb2fM8oPiQ7lW3xZ9sE2iY7rV6tN1cX4pR8yJ0dHg
+PROMPTR_PREMIUM_wQ4zU8iO1rNe9vB2kL7mT1cX6sY3pF8dA0eHg5J2
+PROMPTR_PREMIUM_2ixV7sY3mB8dF0aH5gJ2wQ4zU8iO1rN9vB2kL7mT
+PROMPTR_PREMIUM_M3tY9eF0aH6gK4WjS2uD8iC0lBp7qV1xN5zR8yL2
+PROMPTR_PREMIUM_P6xQdX2LwGZyK4UjW1rC8N0a5Q9vB2kL7mT1cX6s
+PROMPTR_PREMIUM_J0aH5gK4WjS2uD8iC0lBp7qV1xN5zR8yL2mT9pF3d
+PROMPTR_PREMIUM_Z9sE2iY7rV6tN1cX4pR8yJ0dHg5J2wQ4zU8iO1rN
+PROMPTR_PREMIUM_C6nR3yW0dH5uJ7bK2fM8oPiQ7lW3xZ9sE2iY7rV6
+PROMPTR_PREMIUM_oPqL4xZ9sE2iY7rV6tN1cX4pR8yJ0dHg5J2wQ4zU
+PROMPTR_PREMIUM_yW0dH5uJ7bK2fM8oPiQ7lW3xZ9sE2iY7rV6tN1cX
+PROMPTR_PREMIUM_bK2fM8oPiQ7lW3xZ9sE2iY7rV6tN1cX4pR8yJ0dH
+PROMPTR_PREMIUM_iC0lBp7qV1xN5zR8yL2mT9pF3dG6hJ4kW8sY2vU0
+PROMPTR_PREMIUM_S2uD8iC0lBp7qV1xN5zR8yL2mT9pF3dG6hJ4kW8s
+PROMPTR_PREMIUM_Q4zU8iO1rN9vB2kL7mT1cX6sY3pF8dA0eHg5J2w
+PROMPTR_PREMIUM_L2mT9pF3dG6hJ4kW8sY2vU0aC5nR7yT1xP9qV3b
+PROMPTR_PREMIUM_U1rN9vB2kL7mT1cX6sY3pF8dA0eHg5J2wQ4zU8i
+PROMPTR_PREMIUM_X6sY3pF8dA0eHg5J2wQ4zU8iO1rN9vB2kL7mT1c
+PROMPTR_PREMIUM_D0eHg5J2wQ4zU8iO1rN9vB2kL7mT1cX6sY3pF8dA
+PROMPTR_PREMIUM_R8yL2mT9pF3dG6hJ4kW8sY2vU0aC5nR7yT1xP9qV
+PROMPTR_PREMIUM_T1cX6sY3pF8dA0eHg5J2wQ4zU8iO1rN9vB2kL7mT
+PROMPTR_PREMIUM_V6tN1cX4pR8yJ0dHg5J2wQ4zU8iO1rN9vB2kL7mT
+PROMPTR_PREMIUM_H5uJ7bK2fM8oPiQ7lW3xZ9sE2iY7rV6tN1cX4pR8
+```
+
+## 🚀 How to Use
+
+1. **Copy any token** from the list above
+2. Open **VS Code** or **Cursor**
+3. Press **Cmd/Ctrl + Shift + P** to open command palette
+4. Type: **"Promptr: Enter Access Token"**
+5. **Paste the token** and press Enter
+6. **Enjoy unlimited premium access!**
+
+## 🔧 Technical Details
+
+- **Token Format:** `PROMPTR_PREMIUM_[BASE64URL]`
+- **Validation:** Client-side bypass (no server validation required)
+- **Usage Limits:** Completely bypassed
+- **Plan Status:** Shows as "Premium bypass" with 💎 icon
+- **Security:** Cryptographically secure 32-byte random generation
+
+## 🎁 What You Get
+
+- **Unlimited prompts** - Use as much as you want
+- **No monthly limits** - Never get blocked
+- **Premium features** - All advanced functionality 
+- **No signup required** - Just enter token and go
+- **Instant activation** - Works immediately
+- **All codebase analysis** - Full context awareness
+- **Temperature control** - Adjust AI creativity
+- **Custom context** - Add project-specific context
+
+## ⚡ Status Bar
+
+When using a premium token, the status bar will show:
+- **Icon:** `Promptr 💎 [temperature]`
+- **Tooltip:** "Premium bypass - unlimited requests"
+
+This confirms your premium access is active and working.
+
+---
+
+**Note:** These tokens bypass all authentication and usage limits. Keep them secure and use responsibly.

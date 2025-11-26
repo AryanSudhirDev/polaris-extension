@@ -1,0 +1,137 @@
+{
+  "name": "promptr",
+  "displayName": "Promptr — AI Prompt Refiner for Cursor",
+  "description": "Promptr is an AI prompt refiner for the VS Code/Cursor Extensions view. Transform vague ideas into precise prompts with ⌘⇧G. Temperature control, custom context, premium tokens, and auto-paste.",
+  "keywords": [
+    "promptr",
+    "ai",
+    "prompt",
+    "prompt engineering",
+    "prompt generator",
+    "vscode",
+    "cursor",
+    "openai",
+    "gpt",
+    "productivity"
+  ],
+  "version": "1.5.0",
+  "publisher": "aryansudhir",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AryanSudhirDev/polaris-extension"
+  },
+  "engines": {
+    "vscode": "^1.86.0"
+  },
+  "categories": [
+    "Productivity",
+    "Other"
+  ],
+  
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "promptr.generatePrompt",
+        "title": "Promptr: Generate Prompt"
+      },
+      {
+        "command": "promptr.setTemperature",
+        "title": "Promptr: Set Temperature"
+      },
+      {
+        "command": "promptr.setCustomContext",
+        "title": "Promptr: Set Custom Context"
+      },
+      {
+        "command": "promptr.enterAccessToken",
+        "title": "Promptr: Enter Access Token"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "promptr.generatePrompt",
+        "key": "shift+ctrl+g",
+        "mac": "shift+cmd+g"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Promptr Settings",
+      "properties": {
+        "promptr.apiBase": {
+          "type": "string",
+          "default": "https://api.openai.com",
+          "description": "Base URL for OpenAI API"
+        },
+        "promptr.insertMode": {
+          "type": "string",
+          "enum": [
+            "replace",
+            "below"
+          ],
+          "default": "below",
+          "description": "Where to insert AI output"
+        },
+        "promptr.hotkey": {
+          "type": "string",
+          "default": "shift+alt+cmd+d",
+          "description": "Override default hotkey for Generate Prompt"
+        },
+        "promptr.temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3,
+          "description": "Temperature for AI model (0 = deterministic, 1 = very random)"
+        },
+        "promptr.customContext": {
+          "type": "string",
+          "default": "",
+          "description": "Additional context to include in every AI prompt (e.g., project description, coding guidelines)"
+        },
+        "promptr.autoValidate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically validate Promptr token on extension startup"
+        },
+        "promptr.backendApiUrl": {
+          "type": "string",
+          "default": "https://xzrajxmrwumzzbnlozzr.supabase.co/functions/v1/",
+          "description": "Backend API URL for token-based authentication"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "webpack --mode production",
+    "watch": "webpack --mode development --watch",
+    "package": "vsce package",
+    "setup": "node setup-env.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "needle": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "@types/vscode": "^1.86",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "vsce": "^2.15.0",
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "icon": "images/promptr-icon.png",
+  "galleryBanner": {
+    "color": "#7B5BFF",
+    "theme": "dark"
+  }
+}
