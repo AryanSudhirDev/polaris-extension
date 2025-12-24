@@ -1,13 +1,13 @@
 # Promptr
 
-AI-powered prompt refinement for VS Code and Cursor. Transform rough ideas into polished, detailed prompts.
+AI-powered prompt refinement for Cursor. Transform rough ideas into polished, detailed prompts.
 
 ## Getting Started
 
 1. Install the extension
 2. Get your access token from [usepromptr.com/account](https://usepromptr.com/account)
 3. Select text in your editor or chat interface
-4. Press `⌘⇧G` (Mac) or `Ctrl+Shift+G` (Windows/Linux)
+4. Press the shortcut (`⌘⇧G` (Mac) or `Ctrl+Shift+G` (Windows/Linux)) and watch the magic happen!
 
 ## Features
 
@@ -23,7 +23,7 @@ AI-powered prompt refinement for VS Code and Cursor. Transform rough ideas into 
 ### Basic Usage
 1. Select text anywhere in VS Code/Cursor
 2. Press `⌘⇧G` / `Ctrl+Shift+G`
-3. AI refines it into a detailed prompt
+3. Promptr refines it into a detailed, LLM-specific prompt
 
 ### Status Bar
 Click the `Promptr 🔥 0.3` status bar item to:
@@ -38,7 +38,6 @@ Click the `Promptr 🔥 0.3` status bar item to:
 |---------|---------|-------------|
 | `promptr.temperature` | `0.3` | Controls output randomness (0-1) |
 | `promptr.customContext` | `""` | Additional context for all prompts |
-| `promptr.apiBase` | `https://api.openai.com` | API endpoint (advanced) |
 
 ## Commands
 
@@ -56,7 +55,7 @@ Get your token at [usepromptr.com/account](https://usepromptr.com/account)
 
 ## Support
 
-- Issues: [GitHub Issues](https://github.com/AryanSudhirDev/polaris-extension/issues)
+- Issues: [Contact](aryansudhir@icloud.com)
 - Questions: Visit [usepromptr.com](https://usepromptr.com)
 
 ---
