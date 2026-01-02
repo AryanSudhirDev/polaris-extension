@@ -391,20 +391,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 
-    // Get API configuration - use original OpenAI setup
-    const apiBase = getConfig().get<string>('apiBase', 'https://api.openai.com');
+    // Get API configuration - now using Vercel backend proxy
+    const apiBase = getConfig().get<string>('apiBase', 'https://promptr-api.vercel.app');
     log.appendLine(`API base: ${apiBase}`);
-    
-    // Use embedded API key (original functionality)
-    const apiKey = process.env.PROMPTR_MASTER_KEY;
-    
-    if (!apiKey) {
-      vscode.window.showErrorMessage('Promptr service is temporarily unavailable. Please try again later.');
-      log.appendLine('No API key available in build-time environment');
-      return;
-    }
-    
-    log.appendLine('API key found, proceeding with request');
 
     // Show progress without stealing focus
     await vscode.window.withProgress({ 
@@ -416,7 +405,7 @@ export function activate(context: vscode.ExtensionContext) {
       let aiResponse: string;
       
       try {
-        const { response, sentinel } = await aiCall(selectedText, apiBase, apiKey as string, log);
+        const { response, sentinel } = await aiCall(selectedText, apiBase, '', log);
         aiResponse = response;
 
         // --- Leak check: abort if model echoed hidden system prompt ---
@@ -1038,8 +1027,8 @@ async function checkUsageLimit(token: string, log: vscode.OutputChannel): Promis
 }
 
 async function aiCall(input: string, apiBase: string | undefined, apiKey: string, log: vscode.OutputChannel): Promise<AIResult> {
-  // Use OpenAI API directly with build-time embedded key
-  const urlString = apiBase ? `${apiBase.replace(/\/$/, '')}/v1/chat/completions` : 'https://api.openai.com/v1/chat/completions';
+  // Use Vercel backend proxy (no API key needed - it's server-side)
+  const urlString = apiBase ? `${apiBase.replace(/\/$/, '')}/api/chat` : 'https://promptr-api.vercel.app/api/chat';
   const url = new URL(urlString);
   log.appendLine(`POST ${url.toString()}`);
   
@@ -1154,7 +1143,6 @@ Output: Detailed spec including data sources, chart types, filtering capabilitie
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
         'Content-Length': Buffer.byteLength(postData)
       }
     };

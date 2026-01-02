@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.5.2] - 2026-01-02
+
+### 🚀 Major Security & Architecture Update
+
+#### Changed
+- **Secure Backend Architecture**: Migrated from embedded API keys to Vercel serverless backend proxy
+- **No Client-Side Keys**: OpenAI API key now stored securely server-side only
+- **Production-Ready**: Extension now safe for public distribution without key exposure
+
+#### Technical Details
+- Implemented `/api/chat.ts` Vercel serverless function
+- Removed `PROMPTR_MASTER_KEY` from webpack environment plugin
+- Updated default API base to `https://promptr-api.vercel.app`
+- Authorization header now handled by backend proxy
+- CORS enabled for extension access
+
+#### Benefits
+- ✅ **Secure**: API keys never exposed in extension bundle
+- ✅ **Scalable**: Vercel handles all API traffic
+- ✅ **Reliable**: Auto-deploys on git push
+- ✅ **Professional**: Enterprise-grade architecture
+
+---
+
 ## [1.5.0] - 2025-11-22
 
 ### Added

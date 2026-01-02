@@ -14,7 +14,7 @@
     "gpt",
     "productivity"
   ],
-  "version": "1.5.1",
+  "version": "1.5.2",
   "publisher": "aryansudhir",
   "license": "MIT",
   "repository": {
@@ -64,8 +64,8 @@
       "properties": {
         "promptr.apiBase": {
           "type": "string",
-          "default": "https://api.openai.com",
-          "description": "Base URL for OpenAI API"
+          "default": "https://promptr-api.vercel.app",
+          "description": "Base URL for Promptr API backend"
         },
         "promptr.insertMode": {
           "type": "string",

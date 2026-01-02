@@ -38,7 +38,6 @@ module.exports = {
     // Expose selected env vars at runtime; they are NOT inlined into the bundle
     // Provide empty-string defaults so webpack doesn't error if they're not set locally
     new webpack.EnvironmentPlugin({
-      PROMPTR_MASTER_KEY: '',
       SUPABASE_URL: '',
       SUPABASE_ANON_KEY: '',
       SUPABASE_SERVICE_ROLE_KEY: '',
