@@ -2,9 +2,19 @@
 
 AI-powered prompt refinement for Cursor. Transform rough ideas into polished, detailed prompts.
 
+## Installation
+
+**VS Code / Cursor:**
+- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=aryansudhir.promptr)
+- Search "Promptr" in Extensions sidebar
+
+**VSCodium / Open Source:**
+- [Open VSX Registry](https://open-vsx.org/extension/aryansudhir/promptr)
+- Search "Promptr" in Extensions sidebar
+
 ## Getting Started
 
-1. Install the extension
+1. Install the extension from either marketplace above
 2. Get your access token from [usepromptr.com/account](https://usepromptr.com/account)
 3. Select text in your editor or chat interface
 4. Press the shortcut (`⌘⇧G` (Mac) or `Ctrl+Shift+G` (Windows/Linux)) and watch the magic happen!

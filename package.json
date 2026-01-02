@@ -28,7 +28,6 @@
     "Productivity",
     "Other"
   ],
-  
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -112,6 +111,9 @@
     "compile": "webpack --mode production",
     "watch": "webpack --mode development --watch",
     "package": "vsce package",
+    "publish:vsce": "vsce publish",
+    "publish:ovsx": "ovsx publish",
+    "publish:all": "npm run publish:vsce && npm run publish:ovsx",
     "setup": "node setup-env.js"
   },
   "dependencies": {
@@ -123,6 +125,7 @@
   "devDependencies": {
     "@types/node": "^18",
     "@types/vscode": "^1.86",
+    "ovsx": "^0.9.5",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
     "vsce": "^2.15.0",
