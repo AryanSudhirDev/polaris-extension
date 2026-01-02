@@ -125,6 +125,7 @@
   "devDependencies": {
     "@types/node": "^18",
     "@types/vscode": "^1.86",
+    "@vercel/node": "^5.5.16",
     "ovsx": "^0.9.5",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",

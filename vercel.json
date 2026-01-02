@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "promptr-api",
   "builds": [
     {
       "src": "api/**/*.ts",
@@ -12,9 +11,6 @@
       "src": "/api/(.*)",
       "dest": "/api/$1"
     }
-  ],
-  "env": {
-    "OPENAI_API_KEY": "@openai-api-key"
-  }
+  ]
 }
 
