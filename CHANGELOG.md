@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.5.4] - 2026-01-05
+
+### 🆕 Time-Limited Premium Tokens
+
+#### Added
+- **90 Time-Limited Premium Tokens**: Added 3 batches of 30 tokens each that expire after 1 month
+- **Expiration Checking**: Built-in token expiration validation (no server required)
+- **Organized Batches**: Tokens separated into 3 groups for easier distribution
+- **Expiration Date**: All tokens expire on February 6, 2026
+
+#### Technical Details
+- Implemented `TOKEN_EXPIRATION` map with token -> expiry date mapping
+- Enhanced `validateAccessToken()` to check expiration dates before granting access
+- Time-based validation using JavaScript Date objects
+- Clear error messages when tokens expire
+- Maintains backward compatibility with permanent premium tokens
+
+#### Token Distribution
+- **Batch 1**: 30 tokens (expires 2026-02-06)
+- **Batch 2**: 30 tokens (expires 2026-02-06)
+- **Batch 3**: 30 tokens (expires 2026-02-06)
+- **Total**: 90 time-limited tokens + 90 permanent tokens = 180 premium access tokens
+
+#### Benefits
+- ✅ **Trial Access**: Provide temporary premium access for testing
+- ✅ **Time-Bound Offers**: Create promotional campaigns with expiration
+- ✅ **Better Control**: Tokens automatically expire without server intervention
+- ✅ **Clear Messaging**: Users get informed when tokens expire
+
+---
+
 ## [1.5.2] - 2026-01-02
 
 ### 🚀 Major Security & Architecture Update

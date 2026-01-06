@@ -7,7 +7,104 @@ export interface TokenValidationResponse {
   message?: string;
 }
 
-// Valid premium tokens (hardcoded for security)
+// Token expiration map (token -> expiry date)
+const TOKEN_EXPIRATION: Record<string, string> = {
+  // Batch 1 - Expires Feb 6, 2026
+  'PROMPTR_PREMIUM_DmnDqQmFamVPc5CuacpRn_uELs_VIR5gkZl8DlywPho': '2026-02-06',
+  'PROMPTR_PREMIUM_YyttSuaDd7vxdCcS9rVUm4j9zL-s-MCmV-gKzcpyPXI': '2026-02-06',
+  'PROMPTR_PREMIUM_RnJ_49-RLpjDNbwzdycMUI7ZJvJUS_JE9x8WsEAwZ0E': '2026-02-06',
+  'PROMPTR_PREMIUM_Fqab-R7SwKO-ICKLV7sSyiGml8EROZY0mMPk6JsduYg': '2026-02-06',
+  'PROMPTR_PREMIUM_Z1msXe0mzTcAy03QLS2YWKF9E7edVlhv6BqEB7WUBRg': '2026-02-06',
+  'PROMPTR_PREMIUM_HArE0PZrhEltV2DVVYUKCvY8lUWL1InJ5HoW1nYRr3M': '2026-02-06',
+  'PROMPTR_PREMIUM_2c7yFiTHYPP4puWHNDXi6pSoV1F4T6d7a82QFsdDiPc': '2026-02-06',
+  'PROMPTR_PREMIUM_jyMrwITWGh88VsPFsVx2AFLZhaLNwrWn7b3kmURsiCM': '2026-02-06',
+  'PROMPTR_PREMIUM_LB6hl3H_APN8xrwJNV3Kq5HIo73IGQQbptD7YICU9Sg': '2026-02-06',
+  'PROMPTR_PREMIUM_Qh5C9cGSevipmRLgo_Bwi0ekP0NJwko8_dmLlTGIy_s': '2026-02-06',
+  'PROMPTR_PREMIUM_u_q3qTBII5UKuGsMRNIdZd9J4JV_LjxC-6MYOcaxzak': '2026-02-06',
+  'PROMPTR_PREMIUM_D4H2h2eOR-Ep3wEfGifWrCsC6i2I94xksB_hgib7N_A': '2026-02-06',
+  'PROMPTR_PREMIUM_3W_iNihwF0b68ph9w9PHetfwE67RgDE3_Gk2i83ugp4': '2026-02-06',
+  'PROMPTR_PREMIUM_eHwPZGpMLBc-L4U5Qzdx5J2udjMXJrrGyKfYJ32KHfU': '2026-02-06',
+  'PROMPTR_PREMIUM_Sswj3aFd2V5KZUEWXYgE0PwY9HOKFitc6V-7LS08sRk': '2026-02-06',
+  'PROMPTR_PREMIUM_9cnKsy1DUgv6lV3QitbJbiQ4WBS5-oIkrcTUtSQ_jYM': '2026-02-06',
+  'PROMPTR_PREMIUM__F_Dx22kucE2EWPHtu0YCIL0PQafvTXo7BPB0zJjCi0': '2026-02-06',
+  'PROMPTR_PREMIUM_4S3gui4TH5pwQcFl22PBTaX5YWuck-dhz2E7V5apJgw': '2026-02-06',
+  'PROMPTR_PREMIUM_zsr28Sa5nB2_VORnsAzmMju4KVL8lFZ15Zj1_CGPi54': '2026-02-06',
+  'PROMPTR_PREMIUM_DPNc_3dk3QFcdxv-W99enBINpvkc5AcjiseBQy2KKqg': '2026-02-06',
+  'PROMPTR_PREMIUM_F_cO1i7iPqzeitVXLVOeJQ6dO6tgtxTjhv_u1QGLE9k': '2026-02-06',
+  'PROMPTR_PREMIUM_itoiTYJDAaol0iQihzCnVwA5WBqTJremb-4BmlpuNsM': '2026-02-06',
+  'PROMPTR_PREMIUM_XBT_l82EcL0PVUp5beYmGTp_YzIEfx3UtseZv4vBDOU': '2026-02-06',
+  'PROMPTR_PREMIUM_t8GRmHn2iILdYAFOwFSwvoqD3cGn_43kQa1yliuJULE': '2026-02-06',
+  'PROMPTR_PREMIUM_fB2gGX8-A-Q_Lqli54yW0ANyGYiab9gFG0TQtVhAKa4': '2026-02-06',
+  'PROMPTR_PREMIUM_zJ9G-ApcOK5XuccVp1ehh3N1UaIZMb7IOtXxAo0CUqo': '2026-02-06',
+  'PROMPTR_PREMIUM_ghBKCMvDYCThUzBS8vxg2IkqASEhNGnbqohQLj5o-eo': '2026-02-06',
+  'PROMPTR_PREMIUM_sJlMeqwX0aSvc1EBTmxWDCmNWULNWIJfvu8oAU9ZaBA': '2026-02-06',
+  'PROMPTR_PREMIUM_yXaMO_IekDurtvQKGIV6IJAuWAgNwNWNRgevDMVaUV0': '2026-02-06',
+  'PROMPTR_PREMIUM_2HKDgf6SceoIZnZKTkAghCChqB9_PpN3Eui-dfHdSMo': '2026-02-06',
+  // Batch 2 - Expires Feb 6, 2026
+  'PROMPTR_PREMIUM_xS4RdZ10EH2pYLdUKqjZC2uGVYN7X2h8wZftAnKrLRk': '2026-02-06',
+  'PROMPTR_PREMIUM_eZzWP9bpd64cJlwUKbP3oWv5L51SR4T5FP8QABsKwJs': '2026-02-06',
+  'PROMPTR_PREMIUM_iSqESNl52LuiyyqhdCIWpPFgffdYIacbwCGEy6Bz6K8': '2026-02-06',
+  'PROMPTR_PREMIUM_JQNOlKnBbxv3hxmzUfKZju9YjLjFjsvDnynqhYWFlWo': '2026-02-06',
+  'PROMPTR_PREMIUM_Q8YExQ2d4716wKc6N6w4wLGMwYbqLydYoUk5araJ-0A': '2026-02-06',
+  'PROMPTR_PREMIUM_9_TgUHF9sT0e88YvrAzvwIYJ78xu_iKrYK5ZW1K59XQ': '2026-02-06',
+  'PROMPTR_PREMIUM_K-EbFug-FaYR0RTk13roP2dyZrASGiWAFgtZiWkYRKI': '2026-02-06',
+  'PROMPTR_PREMIUM_QQWbu9z4sdCIc6WgHXDoW4n_I_abK45OeytD3mfkfvc': '2026-02-06',
+  'PROMPTR_PREMIUM_ZXbUAE1DrSLpLUXvnrjHSoJD2J36_JISKeuPCxBCfsQ': '2026-02-06',
+  'PROMPTR_PREMIUM_Vn-WlubCkJ7L8jTncBmMxr-UJAv7YiK1pplPC0D4izg': '2026-02-06',
+  'PROMPTR_PREMIUM_piGvp3SawnFrMae-yqZIYygvsn9FgxnJOLkgbPjYoQA': '2026-02-06',
+  'PROMPTR_PREMIUM_OkUN7btuTGxrKE9CJOYX4yEBYRvmIkulrGutPe7sBKw': '2026-02-06',
+  'PROMPTR_PREMIUM_oGxJ0l7GQwz6w8gJ-muUtOscPnonMAyaowyND2mqguM': '2026-02-06',
+  'PROMPTR_PREMIUM_plZ8p7FHMaLHHvPLycF3eQz5MGsWBtdTco1lJ_EECkg': '2026-02-06',
+  'PROMPTR_PREMIUM_5evF74yXpVl7YGO_Ch69iApCUjH0JT8g_KhTjoWPTrI': '2026-02-06',
+  'PROMPTR_PREMIUM_gpZkmmaIMa2k4IIvCYmRi25NFJA1eT5t2JneLoqcspc': '2026-02-06',
+  'PROMPTR_PREMIUM_fqQqZpeKbCXxPTZQF-m0Pl6KhuWTqoze20Ka1ut3hv4': '2026-02-06',
+  'PROMPTR_PREMIUM_FOZ_m5SHg6YELv29qv_QhnFgtJkfPgjaZurKfsedoRo': '2026-02-06',
+  'PROMPTR_PREMIUM_cse1J45aUUBvNlsPyWK9ojWR39FmowbJv4dLwRCR0G0': '2026-02-06',
+  'PROMPTR_PREMIUM_gf90_Pgc1KO-MrKb2cQD_8_hlqPZynjSHhQ4I6N0REA': '2026-02-06',
+  'PROMPTR_PREMIUM_NcX8Ea7ToVfEZwkI26h2FWLDuv6LKqOLgOvOAHfQPqM': '2026-02-06',
+  'PROMPTR_PREMIUM_89gaWqwOG5RUSEqxI9nE_pRiAJrBUbWTK7ZU3CiB7Qw': '2026-02-06',
+  'PROMPTR_PREMIUM_CY-mExTwR2JpJVcZmhyx8zs21RgVaIYG5cnkCvG3AW0': '2026-02-06',
+  'PROMPTR_PREMIUM_3mk5iYNVzgEcHuomQKqPrZ3X1mS_gG-DxpDJ9YxlfDs': '2026-02-06',
+  'PROMPTR_PREMIUM_XuJoMRlKLjJhIkcjpj7opHrC8_Tva0eQbAd50RBSAb4': '2026-02-06',
+  'PROMPTR_PREMIUM_MDhdMiPkFaIXsP6xU7hfoO2by4zlsDhTcPUeNPgoWaM': '2026-02-06',
+  'PROMPTR_PREMIUM_m_5AamMmEgc8W8-Ww47TrCg7explpjlYF1P9-TdhW70': '2026-02-06',
+  'PROMPTR_PREMIUM_gSQYd-GEscS_UEb6f24lEHuKw7srQMJsRxza3sPHayw': '2026-02-06',
+  'PROMPTR_PREMIUM_1eQTpsb9X6QH2Us3ekWwAcQXpCo996AhRdsmwIMWWoY': '2026-02-06',
+  'PROMPTR_PREMIUM_eAZk-6ts5p8UCO9jpKFf2hHyd3rI_xro_QM0a3Hqm5E': '2026-02-06',
+  // Batch 3 - Expires Feb 6, 2026
+  'PROMPTR_PREMIUM_ZlctWTVNCKcQBurDV36aMsudErkccl4k7R6qMfpYovA': '2026-02-06',
+  'PROMPTR_PREMIUM_4UjnSI7djK1zNcIQRak7oG9O8kUdM-qdxspJ5A4t0uU': '2026-02-06',
+  'PROMPTR_PREMIUM_2-M895gQPwCNVfRsV_Tu6iYc1vGTMWEUPCsO15aRzoQ': '2026-02-06',
+  'PROMPTR_PREMIUM_yPyXVPPiT-UnJthCUSSjeztLxUr_kgaFE8QCEBo82SE': '2026-02-06',
+  'PROMPTR_PREMIUM_ATdS6pyBKcI6zmAZXW3D84Fz7Stiz_6QJ6_31RlOmnA': '2026-02-06',
+  'PROMPTR_PREMIUM_rw3FlsGTMhUwXNYLf3zJxTvwCh9A4eCYEIcBsr8bvAs': '2026-02-06',
+  'PROMPTR_PREMIUM_hxI4jOiBJvv9hpNmIJLEdXqjBBPCYk31yq6jNfnssbs': '2026-02-06',
+  'PROMPTR_PREMIUM_0GGq1yJOckeGfjyb6d2182HFHe2TmGOshVEP98dO0ao': '2026-02-06',
+  'PROMPTR_PREMIUM_niGkbQdJQ2HUpL8wKG4ETgCLQLM7IM2jKWwwxSUNXek': '2026-02-06',
+  'PROMPTR_PREMIUM_NKnKdZHtfk9AhqIKN093cvCY4aGPjMnxmFEq4VTksbM': '2026-02-06',
+  'PROMPTR_PREMIUM_nnLd2eW3Av5Ad8jLMqKiXAwhsD1fWhRBer8FIIEbgqc': '2026-02-06',
+  'PROMPTR_PREMIUM_q1AkBniIQvoEuUy7Enn5PcA8DPYUz7v9iq_eLxtIWTs': '2026-02-06',
+  'PROMPTR_PREMIUM_3CZ235G89USgz88EywqWLQe2Kb-dkeSl3J1l8p7WA7w': '2026-02-06',
+  'PROMPTR_PREMIUM_IdgpO2zf6kSckcm2fTBTwEH6sOyE0Mzdlgn7foJGVk0': '2026-02-06',
+  'PROMPTR_PREMIUM_qmyjg6tt5Vy2ib33vQhYgR3lfFkLvlHz-iwGhDvofVQ': '2026-02-06',
+  'PROMPTR_PREMIUM_G_R0XyhCwGLwtJqIChJeFMmhB4kd2GIjtSOnLIXp1dk': '2026-02-06',
+  'PROMPTR_PREMIUM_Yru_NXFvlip_llG3WAxg1A_pEtpo7TkyjRhGHcrXB6c': '2026-02-06',
+  'PROMPTR_PREMIUM_90YCF2WbqMkSAAzlD8FNHpLQmaKK-5fw8wNdYThKHgU': '2026-02-06',
+  'PROMPTR_PREMIUM_1yG1BhGaYpWjhzm7bXLcIWH7hpyNDQ7IxpRamJblZKg': '2026-02-06',
+  'PROMPTR_PREMIUM_676dyfk4onvxujK89fY-CGrSbl6IzQCDtOXDMIjidCM': '2026-02-06',
+  'PROMPTR_PREMIUM_HbBPytfYK3cq6hsK8ooUkH-Mpzh4LBYP0P-cbvtPJcc': '2026-02-06',
+  'PROMPTR_PREMIUM_ER2Z-GoWBIbCN12J-Q6fAaHNVV0D7heDcf-IB4f3ckU': '2026-02-06',
+  'PROMPTR_PREMIUM_wsmI5VUOeFVkp5um4ruEvYm_3o8FQ0bZWhkizV2jll0': '2026-02-06',
+  'PROMPTR_PREMIUM_THOztALb5AReHQiMQ9xRnCuTSTlX2ATLJvns0ImINE8': '2026-02-06',
+  'PROMPTR_PREMIUM_yiW_wbR-4sqQErjgaUhA6I-qszptxi7zvwZ1oaJ6XrA': '2026-02-06',
+  'PROMPTR_PREMIUM_6dRE-hD5_aP7OYzvPU15ylMgoBv8SfG2gTSK4FWZQlM': '2026-02-06',
+  'PROMPTR_PREMIUM_MT8zGh03rtkzRju-Ymx9LKmLmOw6N0TupCoYfU2HUgg': '2026-02-06',
+  'PROMPTR_PREMIUM_eKuihNC_0Jmt4AvsYz9FldAgDinxsvQ4cFkluACPQ3g': '2026-02-06',
+  'PROMPTR_PREMIUM_CHbeLUKIcQyT2Fmf6OV4aAGRcokeck-PH40r2liYPQs': '2026-02-06',
+  'PROMPTR_PREMIUM_Qral_1seVbdQ2TkfIczlvrdPVCH-n9KzCPL1cuCmZe0': '2026-02-06',
+};
+
+// Valid premium tokens (hardcoded for security) - permanent tokens
 const VALID_PREMIUM_TOKENS = new Set([
   'PROMPTR_PREMIUM_WPKmg1NPiyPL6ijE9nVBJ1xHb23mafnatop8hKAgxF4',
   'PROMPTR_PREMIUM_m9PsptMLoWK4Ls_VmLHzJ4Wc8A0M8TXOySPEdqdc_KE',
@@ -166,14 +263,37 @@ const VALID_PREMIUM_TOKENS = new Set([
  * Validates a Promptr access token against the backend
  */
 export async function validateAccessToken(token: string): Promise<TokenValidationResponse> {
-  // Check for valid premium bypass tokens first
+  // Check for valid premium bypass tokens first (permanent tokens)
   if (VALID_PREMIUM_TOKENS.has(token)) {
-    console.log('✅ Valid premium bypass token detected, granting unlimited access');
+    console.log('✅ Valid permanent premium token detected, granting unlimited access');
     return {
       access: true,
       status: 'pro',
       user_email: 'premium-user@promptr.com',
       message: 'Premium token validated successfully'
+    };
+  }
+  
+  // Check for time-limited premium tokens
+  if (TOKEN_EXPIRATION[token]) {
+    const expiryDate = new Date(TOKEN_EXPIRATION[token]);
+    const now = new Date();
+    
+    if (now > expiryDate) {
+      console.log('❌ Time-limited token expired on', TOKEN_EXPIRATION[token]);
+      return {
+        access: false,
+        status: 'inactive',
+        message: `Token expired on ${TOKEN_EXPIRATION[token]}. Please get a new token from usepromptr.com/account`
+      };
+    }
+    
+    console.log('✅ Valid time-limited premium token detected, expires on', TOKEN_EXPIRATION[token]);
+    return {
+      access: true,
+      status: 'pro',
+      user_email: 'premium-user@promptr.com',
+      message: `Premium token validated successfully. Expires on ${TOKEN_EXPIRATION[token]}`
     };
   }
   

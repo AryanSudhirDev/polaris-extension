@@ -1,0 +1,153 @@
+# ⏰ Time-Limited Premium Access Tokens
+
+## 📋 Overview
+This document contains **90 time-limited premium access tokens** that expire after 1 month. These tokens are organized into 3 batches of 30 tokens each.
+
+## ⚠️ Important Information
+- **Expiration Date:** All tokens expire on **February 6, 2026**
+- **Token Count:** 90 tokens (3 batches × 30 tokens)
+- **Features:** Full premium access until expiration
+- **After Expiration:** Tokens will no longer work and users will need to get new tokens
+
+## 🔐 Batch 1 (30 Tokens) - Expires Feb 6, 2026
+
+```
+PROMPTR_PREMIUM_DmnDqQmFamVPc5CuacpRn_uELs_VIR5gkZl8DlywPho
+PROMPTR_PREMIUM_YyttSuaDd7vxdCcS9rVUm4j9zL-s-MCmV-gKzcpyPXI
+PROMPTR_PREMIUM_RnJ_49-RLpjDNbwzdycMUI7ZJvJUS_JE9x8WsEAwZ0E
+PROMPTR_PREMIUM_Fqab-R7SwKO-ICKLV7sSyiGml8EROZY0mMPk6JsduYg
+PROMPTR_PREMIUM_Z1msXe0mzTcAy03QLS2YWKF9E7edVlhv6BqEB7WUBRg
+PROMPTR_PREMIUM_HArE0PZrhEltV2DVVYUKCvY8lUWL1InJ5HoW1nYRr3M
+PROMPTR_PREMIUM_2c7yFiTHYPP4puWHNDXi6pSoV1F4T6d7a82QFsdDiPc
+PROMPTR_PREMIUM_jyMrwITWGh88VsPFsVx2AFLZhaLNwrWn7b3kmURsiCM
+PROMPTR_PREMIUM_LB6hl3H_APN8xrwJNV3Kq5HIo73IGQQbptD7YICU9Sg
+PROMPTR_PREMIUM_Qh5C9cGSevipmRLgo_Bwi0ekP0NJwko8_dmLlTGIy_s
+PROMPTR_PREMIUM_u_q3qTBII5UKuGsMRNIdZd9J4JV_LjxC-6MYOcaxzak
+PROMPTR_PREMIUM_D4H2h2eOR-Ep3wEfGifWrCsC6i2I94xksB_hgib7N_A
+PROMPTR_PREMIUM_3W_iNihwF0b68ph9w9PHetfwE67RgDE3_Gk2i83ugp4
+PROMPTR_PREMIUM_eHwPZGpMLBc-L4U5Qzdx5J2udjMXJrrGyKfYJ32KHfU
+PROMPTR_PREMIUM_Sswj3aFd2V5KZUEWXYgE0PwY9HOKFitc6V-7LS08sRk
+PROMPTR_PREMIUM_9cnKsy1DUgv6lV3QitbJbiQ4WBS5-oIkrcTUtSQ_jYM
+PROMPTR_PREMIUM__F_Dx22kucE2EWPHtu0YCIL0PQafvTXo7BPB0zJjCi0
+PROMPTR_PREMIUM_4S3gui4TH5pwQcFl22PBTaX5YWuck-dhz2E7V5apJgw
+PROMPTR_PREMIUM_zsr28Sa5nB2_VORnsAzmMju4KVL8lFZ15Zj1_CGPi54
+PROMPTR_PREMIUM_DPNc_3dk3QFcdxv-W99enBINpvkc5AcjiseBQy2KKqg
+PROMPTR_PREMIUM_F_cO1i7iPqzeitVXLVOeJQ6dO6tgtxTjhv_u1QGLE9k
+PROMPTR_PREMIUM_itoiTYJDAaol0iQihzCnVwA5WBqTJremb-4BmlpuNsM
+PROMPTR_PREMIUM_XBT_l82EcL0PVUp5beYmGTp_YzIEfx3UtseZv4vBDOU
+PROMPTR_PREMIUM_t8GRmHn2iILdYAFOwFSwvoqD3cGn_43kQa1yliuJULE
+PROMPTR_PREMIUM_fB2gGX8-A-Q_Lqli54yW0ANyGYiab9gFG0TQtVhAKa4
+PROMPTR_PREMIUM_zJ9G-ApcOK5XuccVp1ehh3N1UaIZMb7IOtXxAo0CUqo
+PROMPTR_PREMIUM_ghBKCMvDYCThUzBS8vxg2IkqASEhNGnbqohQLj5o-eo
+PROMPTR_PREMIUM_sJlMeqwX0aSvc1EBTmxWDCmNWULNWIJfvu8oAU9ZaBA
+PROMPTR_PREMIUM_yXaMO_IekDurtvQKGIV6IJAuWAgNwNWNRgevDMVaUV0
+PROMPTR_PREMIUM_2HKDgf6SceoIZnZKTkAghCChqB9_PpN3Eui-dfHdSMo
+```
+
+## 🔐 Batch 2 (30 Tokens) - Expires Feb 6, 2026
+
+```
+PROMPTR_PREMIUM_xS4RdZ10EH2pYLdUKqjZC2uGVYN7X2h8wZftAnKrLRk
+PROMPTR_PREMIUM_eZzWP9bpd64cJlwUKbP3oWv5L51SR4T5FP8QABsKwJs
+PROMPTR_PREMIUM_iSqESNl52LuiyyqhdCIWpPFgffdYIacbwCGEy6Bz6K8
+PROMPTR_PREMIUM_JQNOlKnBbxv3hxmzUfKZju9YjLjFjsvDnynqhYWFlWo
+PROMPTR_PREMIUM_Q8YExQ2d4716wKc6N6w4wLGMwYbqLydYoUk5araJ-0A
+PROMPTR_PREMIUM_9_TgUHF9sT0e88YvrAzvwIYJ78xu_iKrYK5ZW1K59XQ
+PROMPTR_PREMIUM_K-EbFug-FaYR0RTk13roP2dyZrASGiWAFgtZiWkYRKI
+PROMPTR_PREMIUM_QQWbu9z4sdCIc6WgHXDoW4n_I_abK45OeytD3mfkfvc
+PROMPTR_PREMIUM_ZXbUAE1DrSLpLUXvnrjHSoJD2J36_JISKeuPCxBCfsQ
+PROMPTR_PREMIUM_Vn-WlubCkJ7L8jTncBmMxr-UJAv7YiK1pplPC0D4izg
+PROMPTR_PREMIUM_piGvp3SawnFrMae-yqZIYygvsn9FgxnJOLkgbPjYoQA
+PROMPTR_PREMIUM_OkUN7btuTGxrKE9CJOYX4yEBYRvmIkulrGutPe7sBKw
+PROMPTR_PREMIUM_oGxJ0l7GQwz6w8gJ-muUtOscPnonMAyaowyND2mqguM
+PROMPTR_PREMIUM_plZ8p7FHMaLHHvPLycF3eQz5MGsWBtdTco1lJ_EECkg
+PROMPTR_PREMIUM_5evF74yXpVl7YGO_Ch69iApCUjH0JT8g_KhTjoWPTrI
+PROMPTR_PREMIUM_gpZkmmaIMa2k4IIvCYmRi25NFJA1eT5t2JneLoqcspc
+PROMPTR_PREMIUM_fqQqZpeKbCXxPTZQF-m0Pl6KhuWTqoze20Ka1ut3hv4
+PROMPTR_PREMIUM_FOZ_m5SHg6YELv29qv_QhnFgtJkfPgjaZurKfsedoRo
+PROMPTR_PREMIUM_cse1J45aUUBvNlsPyWK9ojWR39FmowbJv4dLwRCR0G0
+PROMPTR_PREMIUM_gf90_Pgc1KO-MrKb2cQD_8_hlqPZynjSHhQ4I6N0REA
+PROMPTR_PREMIUM_NcX8Ea7ToVfEZwkI26h2FWLDuv6LKqOLgOvOAHfQPqM
+PROMPTR_PREMIUM_89gaWqwOG5RUSEqxI9nE_pRiAJrBUbWTK7ZU3CiB7Qw
+PROMPTR_PREMIUM_CY-mExTwR2JpJVcZmhyx8zs21RgVaIYG5cnkCvG3AW0
+PROMPTR_PREMIUM_3mk5iYNVzgEcHuomQKqPrZ3X1mS_gG-DxpDJ9YxlfDs
+PROMPTR_PREMIUM_XuJoMRlKLjJhIkcjpj7opHrC8_Tva0eQbAd50RBSAb4
+PROMPTR_PREMIUM_MDhdMiPkFaIXsP6xU7hfoO2by4zlsDhTcPUeNPgoWaM
+PROMPTR_PREMIUM_m_5AamMmEgc8W8-Ww47TrCg7explpjlYF1P9-TdhW70
+PROMPTR_PREMIUM_gSQYd-GEscS_UEb6f24lEHuKw7srQMJsRxza3sPHayw
+PROMPTR_PREMIUM_1eQTpsb9X6QH2Us3ekWwAcQXpCo996AhRdsmwIMWWoY
+PROMPTR_PREMIUM_eAZk-6ts5p8UCO9jpKFf2hHyd3rI_xro_QM0a3Hqm5E
+```
+
+## 🔐 Batch 3 (30 Tokens) - Expires Feb 6, 2026
+
+```
+PROMPTR_PREMIUM_ZlctWTVNCKcQBurDV36aMsudErkccl4k7R6qMfpYovA
+PROMPTR_PREMIUM_4UjnSI7djK1zNcIQRak7oG9O8kUdM-qdxspJ5A4t0uU
+PROMPTR_PREMIUM_2-M895gQPwCNVfRsV_Tu6iYc1vGTMWEUPCsO15aRzoQ
+PROMPTR_PREMIUM_yPyXVPPiT-UnJthCUSSjeztLxUr_kgaFE8QCEBo82SE
+PROMPTR_PREMIUM_ATdS6pyBKcI6zmAZXW3D84Fz7Stiz_6QJ6_31RlOmnA
+PROMPTR_PREMIUM_rw3FlsGTMhUwXNYLf3zJxTvwCh9A4eCYEIcBsr8bvAs
+PROMPTR_PREMIUM_hxI4jOiBJvv9hpNmIJLEdXqjBBPCYk31yq6jNfnssbs
+PROMPTR_PREMIUM_0GGq1yJOckeGfjyb6d2182HFHe2TmGOshVEP98dO0ao
+PROMPTR_PREMIUM_niGkbQdJQ2HUpL8wKG4ETgCLQLM7IM2jKWwwxSUNXek
+PROMPTR_PREMIUM_NKnKdZHtfk9AhqIKN093cvCY4aGPjMnxmFEq4VTksbM
+PROMPTR_PREMIUM_nnLd2eW3Av5Ad8jLMqKiXAwhsD1fWhRBer8FIIEbgqc
+PROMPTR_PREMIUM_q1AkBniIQvoEuUy7Enn5PcA8DPYUz7v9iq_eLxtIWTs
+PROMPTR_PREMIUM_3CZ235G89USgz88EywqWLQe2Kb-dkeSl3J1l8p7WA7w
+PROMPTR_PREMIUM_IdgpO2zf6kSckcm2fTBTwEH6sOyE0Mzdlgn7foJGVk0
+PROMPTR_PREMIUM_qmyjg6tt5Vy2ib33vQhYgR3lfFkLvlHz-iwGhDvofVQ
+PROMPTR_PREMIUM_G_R0XyhCwGLwtJqIChJeFMmhB4kd2GIjtSOnLIXp1dk
+PROMPTR_PREMIUM_Yru_NXFvlip_llG3WAxg1A_pEtpo7TkyjRhGHcrXB6c
+PROMPTR_PREMIUM_90YCF2WbqMkSAAzlD8FNHpLQmaKK-5fw8wNdYThKHgU
+PROMPTR_PREMIUM_1yG1BhGaYpWjhzm7bXLcIWH7hpyNDQ7IxpRamJblZKg
+PROMPTR_PREMIUM_676dyfk4onvxujK89fY-CGrSbl6IzQCDtOXDMIjidCM
+PROMPTR_PREMIUM_HbBPytfYK3cq6hsK8ooUkH-Mpzh4LBYP0P-cbvtPJcc
+PROMPTR_PREMIUM_ER2Z-GoWBIbCN12J-Q6fAaHNVV0D7heDcf-IB4f3ckU
+PROMPTR_PREMIUM_wsmI5VUOeFVkp5um4ruEvYm_3o8FQ0bZWhkizV2jll0
+PROMPTR_PREMIUM_THOztALb5AReHQiMQ9xRnCuTSTlX2ATLJvns0ImINE8
+PROMPTR_PREMIUM_yiW_wbR-4sqQErjgaUhA6I-qszptxi7zvwZ1oaJ6XrA
+PROMPTR_PREMIUM_6dRE-hD5_aP7OYzvPU15ylMgoBv8SfG2gTSK4FWZQlM
+PROMPTR_PREMIUM_MT8zGh03rtkzRju-Ymx9LKmLmOw6N0TupCoYfU2HUgg
+PROMPTR_PREMIUM_eKuihNC_0Jmt4AvsYz9FldAgDinxsvQ4cFkluACPQ3g
+PROMPTR_PREMIUM_CHbeLUKIcQyT2Fmf6OV4aAGRcokeck-PH40r2liYPQs
+PROMPTR_PREMIUM_Qral_1seVbdQ2TkfIczlvrdPVCH-n9KzCPL1cuCmZe0
+```
+
+## 📊 Summary
+
+- **Total Tokens:** 90
+- **Batches:** 3
+- **Tokens per Batch:** 30
+- **Expiration Date:** February 6, 2026
+- **Token Type:** Time-limited premium access
+- **Status:** All tokens are currently **ACTIVE**
+
+## 🚀 How to Use
+
+1. Copy one of the tokens above
+2. Open VS Code with Promptr extension
+3. Run the command "Promptr: Enter Access Token"
+4. Paste the token
+5. Enjoy premium access until February 6, 2026!
+
+## ⚠️ After Expiration
+
+After February 6, 2026, these tokens will stop working. Users will see an error message:
+```
+Token expired on 2026-02-06. Please get a new token from usepromptr.com/account
+```
+
+## 🔄 Token Management
+
+- **Permanent Tokens:** Still available in `PREMIUM_ACCESS_TOKENS.md` (90 tokens)
+- **Time-Limited Tokens:** This file (90 tokens, expire Feb 6, 2026)
+- **Total Available:** 180 premium access tokens
+
+## 📝 Notes
+
+- These tokens work independently of the permanent tokens
+- Expiration checking is built into the extension
+- No server-side validation required
+- Tokens cannot be renewed after expiration
+
