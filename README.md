@@ -46,6 +46,19 @@ Click the `Promptr 🔥 0.3` status bar item to:
 - `Promptr: Set Custom Context` – Add project context
 - `Promptr: Enter Access Token` – Update authentication
 
+## Token Batch Automation
+
+Create a new expiring premium token batch:
+
+```bash
+npm run tokens:create
+npm run tokens:create -- --count 30
+npm run tokens:create -- --count 30 --expires 2026-07-05
+npm run tokens:create -- --count 30 --deploy
+```
+
+The script adds the next `batchN` entry to `premium-tokens-expiring.json`, validates the JSON, token count, batch size, and duplicates, then prints the generated tokens and giveaway-ready text. With `--deploy`, it runs `vercel --prod --yes` and verifies the live `/api/tokens` response.
+
 ## Plans
 
 **Free**: 50 AI requests per month  
