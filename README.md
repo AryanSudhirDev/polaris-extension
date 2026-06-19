@@ -53,6 +53,19 @@ Click the `Promptr 🔥 0.3` status bar item to:
 
 Get your token at [usepromptr.com/account](https://usepromptr.com/account)
 
+## Maintenance
+
+Create a new batch of short premium access tokens:
+
+```bash
+npm run tokens:create
+npm run tokens:create -- --count 30
+npm run tokens:create -- --count 30 --expires 2026-07-05
+npm run tokens:create -- --count 30 --deploy
+```
+
+The script updates `premium-tokens-expiring.json`, validates token counts and duplicates, and prints a share-ready giveaway post. Passing `--deploy` runs `vercel --prod --yes` and verifies the live `/api/tokens` response.
+
 ## Support
 
 - Issues: [GitHub Issues](https://github.com/AryanSudhirDev/polaris-extension/issues)
