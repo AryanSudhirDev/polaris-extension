@@ -114,6 +114,7 @@
     "publish:vsce": "vsce publish",
     "publish:ovsx": "ovsx publish",
     "publish:all": "npm run publish:vsce && npm run publish:ovsx",
+    "tokens:create": "node scripts/create-tokens.js",
     "setup": "node setup-env.js"
   },
   "dependencies": {
