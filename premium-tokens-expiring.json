@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-05T00:00:00.000Z",
-  "token_count": 270,
+  "generated_at": "2026-07-31T00:00:00.000Z",
+  "token_count": 300,
   "token_type": "premium_time_limited",
   "features": [
     "unlimited_requests_until_expiry",
@@ -330,6 +330,42 @@
       "PROMPTR_Pgwo1zDqCeQgrUvJ",
       "PROMPTR_3mkwmtKm7xWo8hRX",
       "PROMPTR_qBnbLunZw28dSfEP"
+    ]
+  },
+  "batch10": {
+    "name": "Batch 10 - Expires Aug 31, 2026 (Short Tokens)",
+    "expiresAt": "2026-08-31",
+    "tokens": [
+      "PROMPTR_jOlspXiS6e4BXhkc",
+      "PROMPTR_fgfKo9d-khdyF0iY",
+      "PROMPTR_4YqD8s0DB2WggrZS",
+      "PROMPTR_lARWTBd4WmX5IFDk",
+      "PROMPTR_eL01lHNGE9KioR0B",
+      "PROMPTR_0fZ7XiQ7fY6pNddK",
+      "PROMPTR_Ke1Lgu9rlYROzEH5",
+      "PROMPTR_InXlIF2MvUIeuNyU",
+      "PROMPTR_61jk-T5a9yoWQNlH",
+      "PROMPTR_ZNd9VF34o5U6j-2l",
+      "PROMPTR_wRNv0fNfIYZb_O3M",
+      "PROMPTR_DPgZfL0HHVEZhe-t",
+      "PROMPTR_yrQI0VYLryoO9c2H",
+      "PROMPTR_83zy1Asr0fZ5TC_y",
+      "PROMPTR_ioDYOELkmssfa91v",
+      "PROMPTR_WCIFJiZETNgfw474",
+      "PROMPTR_XXgFD6dB5toKEj6X",
+      "PROMPTR_DqLpLy5G47S9WdQb",
+      "PROMPTR_wMneWalF-upG7_pY",
+      "PROMPTR_YO5w_LH5LEPJ0ofk",
+      "PROMPTR_LDghONYCkhGRLi_c",
+      "PROMPTR_jKt131hQPMoXPQIS",
+      "PROMPTR_iTYGF8Vwc8oCy1JY",
+      "PROMPTR_6WUIZWowLeiGduiV",
+      "PROMPTR_Z-Dz3jhdB0whRj6l",
+      "PROMPTR_twIEGNl4GSXSiPzV",
+      "PROMPTR_l17OVrXtM2HnbWTT",
+      "PROMPTR_OCMxQX2YKb7qwLjQ",
+      "PROMPTR_MsIPmGJQ_cdjAeVA",
+      "PROMPTR_3faUcjC8mo184G3W"
     ]
   }
 }
