@@ -483,17 +483,17 @@ async function main() {
   console.log('Success: JSON parsed, token counts match, and no duplicate tokens were found.');
   console.log('Note: this script does not create git commits.');
 
+  printTokens(tokens);
+  printGiveaway(tokens);
+
   if (options.deploy) {
     runDeploy();
     await verifyDeployment(batchKey, validatedData, tokens);
   } else {
     console.log(
-      'Deploy skipped. Pass --deploy to run vercel --prod --yes and verify the live token endpoint.'
+      '\nDeploy skipped. Pass --deploy to run vercel --prod --yes and verify the live token endpoint.'
     );
   }
-
-  printTokens(tokens);
-  printGiveaway(tokens);
 }
 
 main().catch((error) => fail(error.message));
